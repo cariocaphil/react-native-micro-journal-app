@@ -44,7 +44,7 @@ Journal concepts live under `src/domain/journal/` and stay independent of UI and
 | `id` | Non-empty string |
 | `content` | Trimmed, non-empty, max 500 characters |
 | `mood` | One of `great`, `good`, `okay`, `bad`, `awful` |
-| `createdAt` / `updatedAt` | ISO 8601 datetimes; `updatedAt` must not precede `createdAt` |
+| `createdAt` / `updatedAt` | ISO 8601 datetimes (including timezone offsets); `updatedAt` must not precede `createdAt` (compared as instants) |
 
 **`CreateJournalEntryInput`** validates only `content` and `mood` (same content/mood rules). IDs and timestamps are assigned later by the application.
 

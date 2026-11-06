@@ -142,6 +142,28 @@ describe('JournalEntrySchema', () => {
     expect(result.success).toBe(true);
   });
 
+  it('treats equal instants with different timezone offsets as valid', () => {
+    // 12:00+02:00 and 10:00Z are the same instant
+    const result = JournalEntrySchema.safeParse({
+      ...validEntry,
+      createdAt: '2024-06-15T10:00:00.000Z',
+      updatedAt: '2024-06-15T12:00:00.000+02:00',
+    });
+
+    expect(result.success).toBe(true);
+  });
+
+  it('rejects updatedAt that is earlier across timezone offsets', () => {
+    // 11:00+02:00 is 09:00Z, which precedes 10:00Z
+    const result = JournalEntrySchema.safeParse({
+      ...validEntry,
+      createdAt: '2024-06-15T10:00:00.000Z',
+      updatedAt: '2024-06-15T11:00:00.000+02:00',
+    });
+
+    expect(result.success).toBe(false);
+  });
+
   it('rejects an empty id', () => {
     const result = JournalEntrySchema.safeParse({
       ...validEntry,
