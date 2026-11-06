@@ -1,6 +1,6 @@
 # Micro Journal
 
-Offline-first personal journal learning app built with [Expo](https://expo.dev), TypeScript, and [Expo Router](https://docs.expo.dev/router/introduction/).
+Offline-first personal journal app built with [Expo](https://expo.dev), TypeScript, and [Expo Router](https://docs.expo.dev/router/introduction/).
 
 Development follows a 12-PR roadmap. Current focus: **Phase 1 — Foundation & Navigation** (PR #2 app shell). See [ROADMAP.md](ROADMAP.md) for the full plan.
 
