@@ -1,61 +1,40 @@
-import * as Device from 'expo-device';
-import { Platform, StyleSheet } from 'react-native';
+import { router } from 'expo-router';
+import { Pressable, StyleSheet } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
-import { AnimatedIcon } from '@/components/animated-icon';
-import { HintRow } from '@/components/hint-row';
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
-import { WebBadge } from '@/components/web-badge';
-import { BottomTabInset, MaxContentWidth, Spacing } from '@/constants/theme';
-
-function getDevMenuHint() {
-  if (Platform.OS === 'web') {
-    return <ThemedText type="small">use browser devtools</ThemedText>;
-  }
-  if (Device.isDevice) {
-    return (
-      <ThemedText type="small">
-        shake device or press <ThemedText type="code">m</ThemedText> in terminal
-      </ThemedText>
-    );
-  }
-  const shortcut = Platform.OS === 'android' ? 'cmd+m (or ctrl+m)' : 'cmd+d';
-  return (
-    <ThemedText type="small">
-      press <ThemedText type="code">{shortcut}</ThemedText>
-    </ThemedText>
-  );
-}
+import { Spacing } from '@/constants/theme';
+import { useTheme } from '@/hooks/use-theme';
 
 export default function HomeScreen() {
+  const theme = useTheme();
+
   return (
     <ThemedView style={styles.container}>
-      <SafeAreaView style={styles.safeArea}>
-        <ThemedView style={styles.heroSection}>
-          <AnimatedIcon />
-          <ThemedText type="title" style={styles.title}>
-            Welcome to&nbsp;Expo
-          </ThemedText>
-        </ThemedView>
-
-        <ThemedText type="code" style={styles.code}>
-          get started
+      <SafeAreaView edges={['bottom', 'left', 'right']} style={styles.safeArea}>
+        <ThemedText type="subtitle" accessibilityRole="header">
+          Micro Journal
         </ThemedText>
 
-        <ThemedView type="backgroundElement" style={styles.stepContainer}>
-          <HintRow
-            title="Try editing"
-            hint={<ThemedText type="code">src/app/index.tsx</ThemedText>}
-          />
-          <HintRow title="Dev tools" hint={getDevMenuHint()} />
-          <HintRow
-            title="Fresh start"
-            hint={<ThemedText type="code">npm run reset-project</ThemedText>}
-          />
-        </ThemedView>
+        <ThemedText themeColor="textSecondary" style={styles.intro}>
+          A small space for short reflections.
+        </ThemedText>
 
-        {Platform.OS === 'web' && <WebBadge />}
+        <ThemedText themeColor="textSecondary" style={styles.emptyState}>
+          No entries yet
+        </ThemedText>
+
+        <Pressable
+          accessibilityRole="button"
+          accessibilityLabel="New Entry"
+          onPress={() => router.push('/new-entry')}
+          style={({ pressed }) => [
+            styles.cta,
+            { backgroundColor: theme.primary, opacity: pressed ? 0.85 : 1 },
+          ]}>
+          <ThemedText style={[styles.ctaLabel, { color: theme.onPrimary }]}>New Entry</ThemedText>
+        </Pressable>
       </SafeAreaView>
     </ThemedView>
   );
@@ -64,35 +43,29 @@ export default function HomeScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    justifyContent: 'center',
-    flexDirection: 'row',
   },
   safeArea: {
     flex: 1,
     paddingHorizontal: Spacing.four,
-    alignItems: 'center',
-    gap: Spacing.three,
-    paddingBottom: BottomTabInset + Spacing.three,
-    maxWidth: MaxContentWidth,
+    paddingTop: Spacing.four,
+    paddingBottom: Spacing.three,
   },
-  heroSection: {
-    alignItems: 'center',
-    justifyContent: 'center',
-    flex: 1,
+  intro: {
+    marginTop: Spacing.two,
+  },
+  emptyState: {
+    marginTop: Spacing.five,
+    marginBottom: Spacing.four,
+  },
+  cta: {
+    alignSelf: 'flex-start',
+    paddingVertical: Spacing.three,
     paddingHorizontal: Spacing.four,
-    gap: Spacing.four,
+    borderRadius: Spacing.two,
   },
-  title: {
-    textAlign: 'center',
-  },
-  code: {
-    textTransform: 'uppercase',
-  },
-  stepContainer: {
-    gap: Spacing.three,
-    alignSelf: 'stretch',
-    paddingHorizontal: Spacing.three,
-    paddingVertical: Spacing.four,
-    borderRadius: Spacing.four,
+  ctaLabel: {
+    fontSize: 16,
+    lineHeight: 24,
+    fontWeight: 600,
   },
 });
