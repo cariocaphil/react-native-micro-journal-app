@@ -99,12 +99,29 @@ export function useJournalRepositoryStatus(): JournalRepositoryContextValue {
 /**
  * Returns the journal repository when ready, or null while loading/error.
  * Throws only when used outside JournalRepositoryProvider.
- * Root layout should mount screens only after status is ready.
  */
 export function useJournalRepository(): JournalRepository | null {
   const context = useContext(JournalRepositoryContext);
   if (!context) {
     throw new Error('useJournalRepository must be used within a JournalRepositoryProvider');
+  }
+  return context.repository;
+}
+
+/**
+ * Returns a non-null journal repository for screens mounted after initialization.
+ * Throws when used outside JournalRepositoryProvider, or if the repository is not ready
+ * (which should not happen when the root layout gates on status === 'ready').
+ */
+export function useReadyJournalRepository(): JournalRepository {
+  const context = useContext(JournalRepositoryContext);
+  if (!context) {
+    throw new Error('useReadyJournalRepository must be used within a JournalRepositoryProvider');
+  }
+  if (!context.repository) {
+    throw new Error(
+      'Journal repository is not ready. Mount screens only after JournalRepositoryProvider reports ready.',
+    );
   }
   return context.repository;
 }

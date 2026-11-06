@@ -2,15 +2,14 @@ import { router } from 'expo-router';
 import { useRef, useState } from 'react';
 
 import {
-  PERSISTENCE_ERROR_MESSAGE,
   submitNewJournalEntry,
   type NewEntryFieldErrors,
 } from '@/app/new-entry-submit';
-import { useJournalRepository } from '@/database/journal-repository-context';
+import { useReadyJournalRepository } from '@/database/journal-repository-context';
 import type { Mood } from '@/domain/journal/journal-entry';
 
 export function useNewEntryForm() {
-  const repository = useJournalRepository();
+  const repository = useReadyJournalRepository();
 
   const [content, setContent] = useState('');
   const [mood, setMood] = useState<Mood>('okay');
@@ -21,10 +20,6 @@ export function useNewEntryForm() {
 
   async function save() {
     if (isSavingRef.current) {
-      return;
-    }
-    if (!repository) {
-      setPersistenceError(PERSISTENCE_ERROR_MESSAGE);
       return;
     }
 
