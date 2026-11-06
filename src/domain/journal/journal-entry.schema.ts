@@ -14,6 +14,9 @@ export const CreateJournalEntrySchema = z.object({
   mood: MoodSchema,
 });
 
+/** Same validation as create: content + mood required. */
+export const UpdateJournalEntrySchema = CreateJournalEntrySchema;
+
 export const JournalEntrySchema = z
   .object({
     id: z.string().trim().min(1),
@@ -28,4 +31,5 @@ export const JournalEntrySchema = z
   });
 
 export type CreateJournalEntryInput = z.infer<typeof CreateJournalEntrySchema>;
+export type UpdateJournalEntryInput = z.infer<typeof UpdateJournalEntrySchema>;
 export type JournalEntry = z.infer<typeof JournalEntrySchema>;
