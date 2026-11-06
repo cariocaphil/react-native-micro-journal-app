@@ -14,8 +14,12 @@ export async function openJournalDatabase(
 ): Promise<SQLite.SQLiteDatabase> {
   const db = await SQLite.openDatabaseAsync(databaseName, options);
 
-  await db.execAsync('PRAGMA journal_mode = WAL');
-  await applyMigrations(db);
-
-  return db;
+  try {
+    await db.execAsync('PRAGMA journal_mode = WAL');
+    await applyMigrations(db);
+    return db;
+  } catch (error) {
+    await db.closeAsync();
+    throw error;
+  }
 }
