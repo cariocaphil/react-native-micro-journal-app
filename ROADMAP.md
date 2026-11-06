@@ -14,13 +14,13 @@ Incremental 12-PR plan for Micro Journal. See [README.md](README.md) for setup a
 
 Initialize Expo, TypeScript, and Expo Router. Verify the application runs on an Android device using Expo Go.
 
-### PR #2 — App Shell & Navigation (In progress)
+### PR #2 — App Shell & Navigation (Merged)
 
 **Branch:** `feature/2-app-shell-navigation`
 
 Replace the Expo starter experience with a journal home screen, placeholder entry screen, basic Stack navigation, and system light/dark theme support.
 
-### PR #3 — Journal Domain Model & Validation (Planned)
+### PR #3 — Journal Domain Model & Validation (Merged)
 
 **Branch:** `feature/3-journal-domain`
 
@@ -30,35 +30,35 @@ Define the `JournalEntry` model, mood types, Zod validation schemas, and domain-
 
 ## Phase 2 — Offline-First Journal
 
-### PR #4 — SQLite Persistence & Migrations (Planned)
+### PR #4 — SQLite Persistence & Migrations (Merged)
 
 **Branch:** `feature/4-sqlite-persistence`
 
 Introduce Expo SQLite, database initialization, schema migrations, and a `JournalRepository` with typed CRUD operations and focused tests.
 
-### PR #5 — Journal Service & Hooks (Planned)
+### PR #5 — Journal Entry Creation (In progress)
 
-**Branch:** `feature/5-journal-service`
+**Branch:** `feature/5-journal-entry-creation`
 
-Introduce `JournalService` and `useJournal` to coordinate journal operations, asynchronous state, and error handling.
+Connect the New Entry screen to domain validation and SQLite persistence: form input, mood selection, validate with `CreateJournalEntrySchema`, save via `JournalRepository`, navigate home on success. Wire a thin repository provider in the root layout (no service layer). Entry listing remains out of scope.
 
 ### PR #6 — Journal Timeline (Planned)
 
 **Branch:** `feature/6-journal-timeline`
 
-Implement the journal overview using `FlatList`, displaying locally persisted entries ordered by date, with appropriate loading and empty states.
+Implement the journal overview using `FlatList`, displaying locally persisted entries ordered by date, with appropriate loading and empty states. Enables end-to-end UI verification of created entries after relaunch.
 
-### PR #7 — Entry Creation & Editing (Planned)
+### PR #7 — Entry Editing (Planned)
 
 **Branch:** `feature/7-entry-editor`
 
-Implement entry creation and editing, form validation, keyboard handling, and integration with the journal service.
+Implement entry editing, form validation for updates, keyboard handling, and navigation from the timeline.
 
 ### PR #8 — Mood Picker & Entry Deletion (Planned)
 
 **Branch:** `feature/8-mood-picker`
 
-Implement reusable mood selection, entry deletion with confirmation, and corresponding tests.
+Refine reusable mood selection, entry deletion with confirmation, and corresponding tests.
 
 **Milestone:** Fully functional offline journal.
 
