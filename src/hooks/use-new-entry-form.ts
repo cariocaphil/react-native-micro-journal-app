@@ -4,7 +4,7 @@ import { useRef, useState } from 'react';
 import {
   submitNewJournalEntry,
   type NewEntryFieldErrors,
-} from '@/app/new-entry-submit';
+} from '@/journal/new-entry-submit';
 import { useReadyJournalRepository } from '@/database/journal-repository-context';
 import type { Mood } from '@/domain/journal/journal-entry';
 

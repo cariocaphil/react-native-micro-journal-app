@@ -84,12 +84,13 @@ Use this checklist after implementing entry creation:
 
 | Path | Role |
 |------|------|
-| `src/app/` | Expo Router screens and layouts (file-based routes) |
+| `src/app/` | Expo Router screens and layouts only (file-based routes; no tests/helpers) |
 | `src/components/` | Shared UI components |
 | `src/constants/` | Theme tokens and shared constants |
 | `src/database/` | SQLite init, migrations, repository (no UI) |
 | `src/domain/` | Domain models and Zod validation (no UI/storage) |
 | `src/hooks/` | Reusable hooks (e.g. color scheme / theme) |
+| `src/journal/` | Entry-creation helpers and their tests (kept outside the router tree) |
 
 ## Learn more
 

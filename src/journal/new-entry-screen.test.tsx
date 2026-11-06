@@ -1,12 +1,11 @@
 import { beforeEach, describe, expect, it, jest } from '@jest/globals';
 import { fireEvent, render, screen, waitFor } from '@testing-library/react-native';
 
+import NewEntryScreen from '@/app/new-entry';
 import type { JournalRepository } from '@/database/journal-repository';
 import { JournalRepositoryProvider } from '@/database/journal-repository-context';
 import type { JournalEntry } from '@/domain/journal/journal-entry';
-
-import NewEntryScreen from './new-entry';
-import { PERSISTENCE_ERROR_MESSAGE } from './new-entry-submit';
+import { PERSISTENCE_ERROR_MESSAGE } from '@/journal/new-entry-submit';
 
 const mockBack = jest.fn();
 
