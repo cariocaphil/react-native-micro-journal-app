@@ -34,6 +34,21 @@ const loadingState: AsyncRepositoryState = {
   error: null,
 };
 
+/** Shared across Strict Mode remounts so we never open the default DB concurrently. */
+let defaultRepositoryPromise: Promise<JournalRepository> | null = null;
+
+function getDefaultJournalRepository(): Promise<JournalRepository> {
+  if (!defaultRepositoryPromise) {
+    defaultRepositoryPromise = openJournalDatabase()
+      .then((db) => createJournalRepository(db))
+      .catch((error: unknown) => {
+        defaultRepositoryPromise = null;
+        throw error;
+      });
+  }
+  return defaultRepositoryPromise;
+}
+
 export function JournalRepositoryProvider({
   children,
   repository: injectedRepository,
@@ -49,13 +64,13 @@ export function JournalRepositoryProvider({
 
     async function initialize() {
       try {
-        const db = await openJournalDatabase();
+        const repository = await getDefaultJournalRepository();
         if (cancelled) {
           return;
         }
         setAsyncState({
           status: 'ready',
-          repository: createJournalRepository(db),
+          repository,
           error: null,
         });
       } catch (cause) {

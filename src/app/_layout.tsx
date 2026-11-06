@@ -1,5 +1,7 @@
 import { DarkTheme, DefaultTheme, Stack, ThemeProvider } from 'expo-router';
-import { ActivityIndicator, StyleSheet, useColorScheme } from 'react-native';
+import * as SplashScreen from 'expo-splash-screen';
+import { useEffect } from 'react';
+import { StyleSheet, useColorScheme } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { ThemedText } from '@/components/themed-text';
@@ -9,6 +11,9 @@ import {
   JournalRepositoryProvider,
   useJournalRepositoryStatus,
 } from '@/database/journal-repository-context';
+
+// Keep the native splash visible until the journal database is ready (or fails).
+SplashScreen.preventAutoHideAsync();
 
 export default function RootLayout() {
   const colorScheme = useColorScheme();
@@ -40,17 +45,15 @@ export default function RootLayout() {
 function RootNavigator() {
   const { status } = useJournalRepositoryStatus();
 
+  useEffect(() => {
+    if (status === 'ready' || status === 'error') {
+      void SplashScreen.hideAsync();
+    }
+  }, [status]);
+
+  // Keep splash visible while initializing — do not mount routes yet.
   if (status === 'loading') {
-    return (
-      <ThemedView style={styles.statusContainer}>
-        <SafeAreaView style={styles.statusSafeArea}>
-          <ActivityIndicator accessibilityLabel="Loading journal" />
-          <ThemedText themeColor="textSecondary" style={styles.statusText}>
-            Loading…
-          </ThemedText>
-        </SafeAreaView>
-      </ThemedView>
-    );
+    return null;
   }
 
   if (status === 'error') {
