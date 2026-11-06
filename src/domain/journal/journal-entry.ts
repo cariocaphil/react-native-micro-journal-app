@@ -4,7 +4,9 @@ export {
   MoodSchema,
   IsoDateTimeSchema,
   CreateJournalEntrySchema,
+  UpdateJournalEntrySchema,
   JournalEntrySchema,
   type CreateJournalEntryInput,
+  type UpdateJournalEntryInput,
   type JournalEntry,
 } from './journal-entry.schema';
