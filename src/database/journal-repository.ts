@@ -9,7 +9,14 @@ import {
   type UpdateJournalEntryInput,
 } from '@/domain/journal/journal-entry';
 
-import { mapRowToJournalEntry, type JournalEntryRow } from './journal-entry-mapper';
+import { mapRowToJournalEntry } from './journal-entry-mapper';
+import {
+  deleteJournalEntryRow,
+  fetchAllJournalEntryRows,
+  fetchJournalEntryRowById,
+  insertJournalEntryRow,
+  updateJournalEntryRow,
+} from './journal-entry-queries';
 
 export type JournalRepository = {
   create(input: CreateJournalEntryInput): Promise<JournalEntry>;
@@ -34,18 +41,8 @@ export function createJournalRepository(
   const now = options.now ?? (() => new Date().toISOString());
 
   async function findById(id: string): Promise<JournalEntry | null> {
-    const row = await db.getFirstAsync<JournalEntryRow>(
-      `SELECT id, content, mood, created_at, updated_at
-       FROM journal_entries
-       WHERE id = ?`,
-      id,
-    );
-
-    if (!row) {
-      return null;
-    }
-
-    return mapRowToJournalEntry(row);
+    const row = await fetchJournalEntryRowById(db, id);
+    return row ? mapRowToJournalEntry(row) : null;
   }
 
   return {
@@ -54,15 +51,13 @@ export function createJournalRepository(
       const id = createId();
       const timestamp = now();
 
-      await db.runAsync(
-        `INSERT INTO journal_entries (id, content, mood, created_at, updated_at)
-         VALUES (?, ?, ?, ?, ?)`,
+      await insertJournalEntryRow(db, {
         id,
-        parsed.content,
-        parsed.mood,
-        timestamp,
-        timestamp,
-      );
+        content: parsed.content,
+        mood: parsed.mood,
+        created_at: timestamp,
+        updated_at: timestamp,
+      });
 
       const entry = await findById(id);
       if (!entry) {
@@ -74,30 +69,19 @@ export function createJournalRepository(
     findById,
 
     async findAll() {
-      const rows = await db.getAllAsync<JournalEntryRow>(
-        `SELECT id, content, mood, created_at, updated_at
-         FROM journal_entries
-         ORDER BY created_at DESC, id DESC`,
-      );
-
+      const rows = await fetchAllJournalEntryRows(db);
       return rows.map(mapRowToJournalEntry);
     },
 
     async update(id, input) {
       const parsed = UpdateJournalEntrySchema.parse(input);
-      const updatedAt = now();
+      const changes = await updateJournalEntryRow(db, id, {
+        content: parsed.content,
+        mood: parsed.mood,
+        updated_at: now(),
+      });
 
-      const result = await db.runAsync(
-        `UPDATE journal_entries
-         SET content = ?, mood = ?, updated_at = ?
-         WHERE id = ?`,
-        parsed.content,
-        parsed.mood,
-        updatedAt,
-        id,
-      );
-
-      if (result.changes === 0) {
+      if (changes === 0) {
         return null;
       }
 
@@ -105,8 +89,8 @@ export function createJournalRepository(
     },
 
     async delete(id) {
-      const result = await db.runAsync(`DELETE FROM journal_entries WHERE id = ?`, id);
-      return result.changes > 0;
+      const changes = await deleteJournalEntryRow(db, id);
+      return changes > 0;
     },
   };
 }
