@@ -1,7 +1,7 @@
 import { describe, expect, it } from '@jest/globals';
 
 import { openJournalDatabase } from './database';
-import { LATEST_SCHEMA_VERSION } from './migrations';
+import { applyMigrations, LATEST_SCHEMA_VERSION, MIGRATIONS } from './migrations';
 import { openTestJournalDatabase } from './test-utils';
 
 describe('openJournalDatabase / migrations', () => {
@@ -65,21 +65,33 @@ describe('openJournalDatabase / migrations', () => {
     }
   });
 
-  it('surfaces migration failures', async () => {
-    const { db, cleanup } = await openTestJournalDatabase('fail');
+  it('rolls back applyMigrations and leaves user_version unchanged on failure', async () => {
+    const { db, cleanup } = await openTestJournalDatabase('migrate-fail');
 
     try {
+      const before = await db.getFirstAsync<{ user_version: number }>('PRAGMA user_version');
+      expect(before?.user_version).toBe(LATEST_SCHEMA_VERSION);
+
       await expect(
-        db.withExclusiveTransactionAsync(async (txn) => {
-          await txn.execAsync('CREATE TABLE ok (id TEXT)');
-          await txn.execAsync('THIS IS NOT VALID SQL');
-        }),
+        applyMigrations(db, [
+          ...MIGRATIONS,
+          {
+            version: LATEST_SCHEMA_VERSION + 1,
+            up: async (txn) => {
+              await txn.execAsync('CREATE TABLE migration_probe (id TEXT)');
+              await txn.execAsync('THIS IS NOT VALID SQL');
+            },
+          },
+        ]),
       ).rejects.toThrow();
 
-      const table = await db.getFirstAsync<{ name: string }>(
-        `SELECT name FROM sqlite_master WHERE type = 'table' AND name = 'ok'`,
+      const after = await db.getFirstAsync<{ user_version: number }>('PRAGMA user_version');
+      expect(after?.user_version).toBe(LATEST_SCHEMA_VERSION);
+
+      const probe = await db.getFirstAsync<{ name: string }>(
+        `SELECT name FROM sqlite_master WHERE type = 'table' AND name = 'migration_probe'`,
       );
-      expect(table).toBeNull();
+      expect(probe).toBeNull();
     } finally {
       await cleanup();
     }

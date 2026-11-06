@@ -28,12 +28,18 @@ export const LATEST_SCHEMA_VERSION = MIGRATIONS[MIGRATIONS.length - 1]?.version 
 /**
  * Apply pending migrations inside an exclusive transaction.
  * All statements (including PRAGMA user_version) run on the txn connection.
+ *
+ * `migrations` is injectable for tests that need to simulate a failing upgrade.
  */
-export async function applyMigrations(db: SQLiteDatabase): Promise<void> {
+export async function applyMigrations(
+  db: SQLiteDatabase,
+  migrations: Migration[] = MIGRATIONS,
+): Promise<void> {
+  const latestVersion = migrations[migrations.length - 1]?.version ?? 0;
   const currentRow = await db.getFirstAsync<{ user_version: number }>('PRAGMA user_version');
   const currentVersion = currentRow?.user_version ?? 0;
 
-  if (currentVersion >= LATEST_SCHEMA_VERSION) {
+  if (currentVersion >= latestVersion) {
     return;
   }
 
@@ -41,7 +47,7 @@ export async function applyMigrations(db: SQLiteDatabase): Promise<void> {
     const txnRow = await txn.getFirstAsync<{ user_version: number }>('PRAGMA user_version');
     let version = txnRow?.user_version ?? 0;
 
-    for (const migration of MIGRATIONS) {
+    for (const migration of migrations) {
       if (migration.version <= version) {
         continue;
       }
