@@ -2,7 +2,7 @@
 
 Offline-first personal journal app built with [Expo](https://expo.dev), TypeScript, and [Expo Router](https://docs.expo.dev/router/introduction/).
 
-Development follows a 12-PR roadmap. Current focus: **Phase 1 — Foundation & Navigation** (PR #2 app shell). See [ROADMAP.md](ROADMAP.md) for the full plan.
+Development follows a 12-PR roadmap. Current focus: **Phase 1 — Foundation & Navigation** (PR #3 journal domain model). See [ROADMAP.md](ROADMAP.md) for the full plan.
 
 ## Requirements
 
@@ -30,7 +30,25 @@ Development follows a 12-PR roadmap. Current focus: **Phase 1 — Foundation & N
 ```bash
 npx tsc --noEmit
 npm run lint
+npm test
 ```
+
+## Domain model
+
+Journal concepts live under `src/domain/journal/` and stay independent of UI and persistence.
+
+**`JournalEntry`** fields:
+
+| Field | Rules |
+|-------|--------|
+| `id` | Non-empty string |
+| `content` | Trimmed, non-empty, max 500 characters |
+| `mood` | One of `great`, `good`, `okay`, `bad`, `awful` |
+| `createdAt` / `updatedAt` | ISO 8601 datetimes; `updatedAt` must not precede `createdAt` |
+
+**`CreateJournalEntryInput`** validates only `content` and `mood` (same content/mood rules). IDs and timestamps are assigned later by the application.
+
+Moods are defined once in `MOODS` and reused by TypeScript types and Zod schemas. Shared `ContentSchema` and `MoodSchema` keep create and full-entry validation consistent.
 
 ## Project structure
 
@@ -39,6 +57,7 @@ npm run lint
 | `src/app/` | Expo Router screens and layouts (file-based routes) |
 | `src/components/` | Shared UI components |
 | `src/constants/` | Theme tokens and shared constants |
+| `src/domain/` | Domain models and Zod validation (no UI/storage) |
 | `src/hooks/` | Reusable hooks (e.g. color scheme / theme) |
 
 ## Learn more
