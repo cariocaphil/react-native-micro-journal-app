@@ -1,7 +1,7 @@
 import { describe, expect, it } from '@jest/globals';
 
 import { createJournalRepository } from './journal-repository';
-import { openTestJournalDatabase } from './test-utils';
+import { openReopenableTestJournalDatabase, openTestJournalDatabase } from './test-utils';
 
 const T0 = '2024-06-15T10:00:00.000Z';
 const T1 = '2024-06-15T11:00:00.000Z';
@@ -30,6 +30,71 @@ describe('JournalRepository', () => {
       expect(found).toEqual(created);
     } finally {
       await cleanup();
+    }
+  });
+
+  it('findAll returns an empty array when no entries exist', async () => {
+    const { db, cleanup } = await openTestJournalDatabase('empty-list');
+
+    try {
+      const repo = createJournalRepository(db);
+      expect(await repo.findAll()).toEqual([]);
+    } finally {
+      await cleanup();
+    }
+  });
+
+  it('findAll maps persisted fields correctly', async () => {
+    const { db, cleanup } = await openTestJournalDatabase('list-map');
+
+    try {
+      const repo = createJournalRepository(db, {
+        createId: () => 'id-map',
+        now: () => T0,
+      });
+
+      await repo.create({ content: 'Mapped reflection', mood: 'bad' });
+
+      expect(await repo.findAll()).toEqual([
+        {
+          id: 'id-map',
+          content: 'Mapped reflection',
+          mood: 'bad',
+          createdAt: T0,
+          updatedAt: T0,
+        },
+      ]);
+    } finally {
+      await cleanup();
+    }
+  });
+
+  it('findAll still returns entries after closing and reopening the database file', async () => {
+    const session = await openReopenableTestJournalDatabase('persist-reopen');
+
+    try {
+      const writer = createJournalRepository(session.db, {
+        createId: () => 'id-persist',
+        now: () => T0,
+      });
+
+      await writer.create({ content: 'Survives restart', mood: 'good' });
+      await session.close();
+
+      const reopenedDb = await session.reopen();
+      const reader = createJournalRepository(reopenedDb);
+
+      expect(await reader.findAll()).toEqual([
+        {
+          id: 'id-persist',
+          content: 'Survives restart',
+          mood: 'good',
+          createdAt: T0,
+          updatedAt: T0,
+        },
+      ]);
+    } finally {
+      await session.cleanup();
     }
   });
 
