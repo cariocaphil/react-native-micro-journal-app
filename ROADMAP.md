@@ -36,17 +36,17 @@ Define the `JournalEntry` model, mood types, Zod validation schemas, and domain-
 
 Introduce Expo SQLite, database initialization, schema migrations, and a `JournalRepository` with typed CRUD operations and focused tests.
 
-### PR #5 — Journal Entry Creation (In progress)
+### PR #5 — Journal Entry Creation (Merged)
 
 **Branch:** `feature/5-journal-entry-creation`
 
 Connect the New Entry screen to domain validation and SQLite persistence: form input, mood selection, validate with `CreateJournalEntrySchema`, save via `JournalRepository`, navigate home on success. Wire a thin repository provider in the root layout (no service layer). Entry listing remains out of scope.
 
-### PR #6 — Journal Timeline (Planned)
+### PR #6 — Journal Entry Listing & Home Screen (In progress)
 
-**Branch:** `feature/6-journal-timeline`
+**Branch:** `feature/6-journal-entry-list`
 
-Implement the journal overview using `FlatList`, displaying locally persisted entries ordered by date, with appropriate loading and empty states. Enables end-to-end UI verification of created entries after relaunch.
+Replace the home placeholder with a `FlatList` of persisted entries via existing `JournalRepository.findAll()` (newest first). Load on screen focus with `useFocusEffect`, including loading, empty, initial-error, and non-blocking refresh-error states. Completes the write → persist → read → display loop without a service layer.
 
 ### PR #7 — Entry Editing (Planned)
 
