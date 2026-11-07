@@ -1,7 +1,13 @@
-import { DarkTheme, DefaultTheme, Stack, ThemeProvider } from 'expo-router';
+import { DarkTheme, DefaultTheme, ThemeProvider } from 'expo-router';
+import * as SplashScreen from 'expo-splash-screen';
 import { useColorScheme } from 'react-native';
 
+import { RootNavigator } from '@/components/root-navigator';
 import { Colors } from '@/constants/theme';
+import { JournalRepositoryProvider } from '@/database/journal-repository-context';
+
+// Keep the native splash visible until the journal database is ready (or fails).
+SplashScreen.preventAutoHideAsync();
 
 export default function RootLayout() {
   const colorScheme = useColorScheme();
@@ -23,10 +29,9 @@ export default function RootLayout() {
 
   return (
     <ThemeProvider value={navigationTheme}>
-      <Stack>
-        <Stack.Screen name="index" options={{ title: 'Micro Journal' }} />
-        <Stack.Screen name="new-entry" options={{ title: 'New Entry' }} />
-      </Stack>
+      <JournalRepositoryProvider>
+        <RootNavigator />
+      </JournalRepositoryProvider>
     </ThemeProvider>
   );
 }

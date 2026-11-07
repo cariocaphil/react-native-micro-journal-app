@@ -9,6 +9,9 @@ export const Colors = {
     textSecondary: '#60646C',
     primary: '#1B6BC7',
     onPrimary: '#ffffff',
+    border: '#C8CCD2',
+    inputBackground: '#F4F5F7',
+    error: '#B42318',
   },
   dark: {
     text: '#ffffff',
@@ -16,6 +19,9 @@ export const Colors = {
     textSecondary: '#B0B4BA',
     primary: '#4B9BFF',
     onPrimary: '#000000',
+    border: '#3A3F47',
+    inputBackground: '#1A1C20',
+    error: '#F97066',
   },
 } as const;
 

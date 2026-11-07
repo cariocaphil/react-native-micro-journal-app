@@ -2,7 +2,7 @@
 
 Offline-first personal journal app built with [Expo](https://expo.dev), TypeScript, and [Expo Router](https://docs.expo.dev/router/introduction/).
 
-Development follows a 12-PR roadmap. Current focus: **Phase 2 — Offline-First Journal** (PR #4 SQLite persistence). See [ROADMAP.md](ROADMAP.md) for the full plan.
+Development follows a 12-PR roadmap. Current focus: **Phase 2 — Offline-First Journal** (PR #5 journal entry creation). See [ROADMAP.md](ROADMAP.md) for the full plan.
 
 ## Requirements
 
@@ -67,16 +67,30 @@ Persistence tests use **`expo-sqlite-mock`**, which adapts Jest to a **better-sq
 npm test
 ```
 
+## Manual test (Expo Go / Android)
+
+Use this checklist after implementing entry creation:
+
+1. Start the app with `npx expo start` and open it in Expo Go.
+2. Tap **New Entry**.
+3. Leave the content empty and tap **Save** — a validation message should appear; you stay on the form.
+4. Enter a short reflection, select a mood, tap **Save** — you return to the home screen.
+5. Open **New Entry** again, type something, tap **Cancel** — you return home without saving that draft.
+6. Optionally force-quit Expo Go and reopen the app — it should initialize cleanly (loading, then home).
+
+**Persistence note:** Because this PR does not include an entry list, relaunching only confirms database initialization succeeds. It does **not** visually prove the entry was stored. Automated create-flow tests assert the repository receives the correct data; existing SQLite repository tests cover durable storage. Seeing created entries in the UI lands in the journal timeline PR.
+
 ## Project structure
 
 | Path | Role |
 |------|------|
-| `src/app/` | Expo Router screens and layouts (file-based routes) |
+| `src/app/` | Expo Router screens and layouts only (file-based routes; no tests/helpers) |
 | `src/components/` | Shared UI components |
 | `src/constants/` | Theme tokens and shared constants |
 | `src/database/` | SQLite init, migrations, repository (no UI) |
 | `src/domain/` | Domain models and Zod validation (no UI/storage) |
 | `src/hooks/` | Reusable hooks (e.g. color scheme / theme) |
+| `src/journal/` | Entry-creation helpers and their tests (kept outside the router tree) |
 
 ## Learn more
 
