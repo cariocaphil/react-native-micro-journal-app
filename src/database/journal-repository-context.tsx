@@ -5,8 +5,7 @@ import {
   createJournalRepository,
   type JournalRepository,
 } from '@/database/journal-repository';
-
-type JournalRepositoryStatus = 'loading' | 'ready' | 'error';
+import { JournalRepositoryStatus } from '@/database/journal-repository-status';
 
 type JournalRepositoryContextValue = {
   status: JournalRepositoryStatus;
@@ -29,7 +28,7 @@ type AsyncRepositoryState = {
 };
 
 const loadingState: AsyncRepositoryState = {
-  status: 'loading',
+  status: JournalRepositoryStatus.Loading,
   repository: null,
   error: null,
 };
@@ -69,7 +68,7 @@ export function JournalRepositoryProvider({
           return;
         }
         setAsyncState({
-          status: 'ready',
+          status: JournalRepositoryStatus.Ready,
           repository,
           error: null,
         });
@@ -80,7 +79,7 @@ export function JournalRepositoryProvider({
         const nextError =
           cause instanceof Error ? cause : new Error('Failed to open journal database');
         setAsyncState({
-          status: 'error',
+          status: JournalRepositoryStatus.Error,
           repository: null,
           error: nextError,
         });
@@ -95,7 +94,7 @@ export function JournalRepositoryProvider({
   }, [injectedRepository]);
 
   const value: JournalRepositoryContextValue = injectedRepository
-    ? { status: 'ready', repository: injectedRepository, error: null }
+    ? { status: JournalRepositoryStatus.Ready, repository: injectedRepository, error: null }
     : asyncState;
 
   return (

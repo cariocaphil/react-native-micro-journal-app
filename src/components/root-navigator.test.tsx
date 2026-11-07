@@ -3,11 +3,12 @@ import { render, screen, waitFor } from '@testing-library/react-native';
 
 import { RootNavigator } from '@/components/root-navigator';
 import { useJournalRepositoryStatus } from '@/database/journal-repository-context';
+import { JournalRepositoryStatus } from '@/database/journal-repository-status';
 
 const mockHideAsync = jest.fn(() => Promise.resolve());
 
 jest.mock('expo-splash-screen', () => ({
-  hideAsync: (...args: unknown[]) => mockHideAsync(...args),
+  hideAsync: () => mockHideAsync(),
 }));
 
 jest.mock('expo-router', () => {
@@ -37,7 +38,7 @@ describe('RootNavigator', () => {
 
   it('renders nothing and keeps the splash while loading', async () => {
     mockUseJournalRepositoryStatus.mockReturnValue({
-      status: 'loading',
+      status: JournalRepositoryStatus.Loading,
       repository: null,
       error: null,
     });
@@ -52,7 +53,7 @@ describe('RootNavigator', () => {
 
   it('shows the database error screen and hides the splash on error', async () => {
     mockUseJournalRepositoryStatus.mockReturnValue({
-      status: 'error',
+      status: JournalRepositoryStatus.Error,
       repository: null,
       error: new Error('open failed'),
     });
@@ -68,7 +69,7 @@ describe('RootNavigator', () => {
 
   it('renders the app stack and hides the splash when ready', async () => {
     mockUseJournalRepositoryStatus.mockReturnValue({
-      status: 'ready',
+      status: JournalRepositoryStatus.Ready,
       repository: {} as never,
       error: null,
     });

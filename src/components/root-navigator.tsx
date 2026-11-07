@@ -4,22 +4,26 @@ import { useEffect } from 'react';
 
 import { JournalDatabaseErrorScreen } from '@/components/journal-database-error-screen';
 import { useJournalRepositoryStatus } from '@/database/journal-repository-context';
+import { JournalRepositoryStatus } from '@/database/journal-repository-status';
 
 export function RootNavigator() {
   const { status } = useJournalRepositoryStatus();
 
   useEffect(() => {
-    if (status === 'ready' || status === 'error') {
+    if (
+      status === JournalRepositoryStatus.Ready ||
+      status === JournalRepositoryStatus.Error
+    ) {
       void SplashScreen.hideAsync();
     }
   }, [status]);
 
   // Keep splash visible while initializing — do not mount routes yet.
-  if (status === 'loading') {
+  if (status === JournalRepositoryStatus.Loading) {
     return null;
   }
 
-  if (status === 'error') {
+  if (status === JournalRepositoryStatus.Error) {
     return <JournalDatabaseErrorScreen />;
   }
 
