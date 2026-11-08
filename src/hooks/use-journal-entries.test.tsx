@@ -5,6 +5,7 @@ import type { ReactNode } from 'react';
 import type { JournalRepository } from '@/database/journal-repository';
 import { JournalRepositoryProvider } from '@/database/journal-repository-context';
 import type { JournalEntry } from '@/domain/journal/journal-entry';
+import { JournalEntriesStatus } from '@/hooks/journal-entries-status';
 import {
   LOAD_ENTRIES_ERROR_MESSAGE,
   useJournalEntries,
@@ -108,7 +109,7 @@ describe('useJournalEntries', () => {
       wrapper: createWrapper(repository),
     });
 
-    expect(result.current.status).toBe('loading');
+    expect(result.current.status).toBe(JournalEntriesStatus.Loading);
     expect(result.current.entries).toEqual([]);
     expect(result.current.refreshError).toBeNull();
 
@@ -117,7 +118,7 @@ describe('useJournalEntries', () => {
     });
 
     await waitFor(() => {
-      expect(result.current.status).toBe('ready');
+      expect(result.current.status).toBe(JournalEntriesStatus.Ready);
     });
     expect(result.current.entries).toEqual([entryOne]);
     expect(result.current.refreshError).toBeNull();
@@ -133,7 +134,7 @@ describe('useJournalEntries', () => {
     });
 
     await waitFor(() => {
-      expect(result.current.status).toBe('ready');
+      expect(result.current.status).toBe(JournalEntriesStatus.Ready);
     });
     expect(result.current.entries).toEqual([]);
     expect(result.current.refreshError).toBeNull();
@@ -151,7 +152,7 @@ describe('useJournalEntries', () => {
     });
 
     await waitFor(() => {
-      expect(result.current.status).toBe('error');
+      expect(result.current.status).toBe(JournalEntriesStatus.Error);
     });
     expect(result.current.entries).toEqual([]);
     expect(result.current.refreshError).toBeNull();
@@ -161,7 +162,7 @@ describe('useJournalEntries', () => {
     });
 
     await waitFor(() => {
-      expect(result.current.status).toBe('ready');
+      expect(result.current.status).toBe(JournalEntriesStatus.Ready);
     });
     expect(result.current.entries).toEqual([entryOne]);
     expect(findAll).toHaveBeenCalledTimes(2);
@@ -179,7 +180,7 @@ describe('useJournalEntries', () => {
     });
 
     await waitFor(() => {
-      expect(result.current.status).toBe('ready');
+      expect(result.current.status).toBe(JournalEntriesStatus.Ready);
     });
     expect(result.current.entries).toEqual([entryOne]);
 
@@ -190,7 +191,7 @@ describe('useJournalEntries', () => {
     await waitFor(() => {
       expect(result.current.refreshError).toBe(LOAD_ENTRIES_ERROR_MESSAGE);
     });
-    expect(result.current.status).toBe('ready');
+    expect(result.current.status).toBe(JournalEntriesStatus.Ready);
     expect(result.current.entries).toEqual([entryOne]);
     expect(findAll).toHaveBeenCalledTimes(2);
   });
@@ -217,7 +218,7 @@ describe('useJournalEntries', () => {
     await waitFor(() => {
       expect(result.current.entries).toEqual([entryTwo, entryOne]);
     });
-    expect(result.current.status).toBe('ready');
+    expect(result.current.status).toBe(JournalEntriesStatus.Ready);
     expect(result.current.refreshError).toBeNull();
     expect(findAll).toHaveBeenCalledTimes(2);
   });
@@ -245,7 +246,7 @@ describe('useJournalEntries', () => {
       wrapper: createWrapper(repository),
     });
 
-    expect(result.current.status).toBe('loading');
+    expect(result.current.status).toBe(JournalEntriesStatus.Loading);
     expect(findAll).toHaveBeenCalledTimes(1);
 
     await act(async () => {
@@ -258,7 +259,7 @@ describe('useJournalEntries', () => {
     });
 
     // Stale first response must not win after blur cancelled it.
-    expect(result.current.status).toBe('loading');
+    expect(result.current.status).toBe(JournalEntriesStatus.Loading);
     expect(result.current.entries).toEqual([]);
 
     await act(async () => {
@@ -266,7 +267,7 @@ describe('useJournalEntries', () => {
     });
 
     await waitFor(() => {
-      expect(result.current.status).toBe('ready');
+      expect(result.current.status).toBe(JournalEntriesStatus.Ready);
     });
     expect(result.current.entries).toEqual([entryTwo]);
   });

@@ -8,6 +8,7 @@ import { JournalEntriesReady } from '@/components/journal-entries-ready';
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
 import { Spacing } from '@/constants/theme';
+import { JournalEntriesStatus } from '@/hooks/journal-entries-status';
 import { useJournalEntries } from '@/hooks/use-journal-entries';
 
 export default function HomeScreen() {
@@ -24,9 +25,11 @@ export default function HomeScreen() {
           A small space for short reflections.
         </ThemedText>
 
-        {status === 'loading' ? <JournalEntriesLoading /> : null}
-        {status === 'error' ? <JournalEntriesError onRetry={reload} /> : null}
-        {status === 'ready' ? (
+        {status === JournalEntriesStatus.Loading ? <JournalEntriesLoading /> : null}
+        {status === JournalEntriesStatus.Error ? (
+          <JournalEntriesError onRetry={reload} />
+        ) : null}
+        {status === JournalEntriesStatus.Ready ? (
           <JournalEntriesReady
             entries={entries}
             refreshError={refreshError}

@@ -3,10 +3,9 @@ import { useCallback, useRef, useState } from 'react';
 
 import { useReadyJournalRepository } from '@/database/journal-repository-context';
 import type { JournalEntry } from '@/domain/journal/journal-entry';
+import { JournalEntriesStatus } from '@/hooks/journal-entries-status';
 
 export const LOAD_ENTRIES_ERROR_MESSAGE = "Couldn't load your entries. Please try again.";
-
-export type JournalEntriesStatus = 'loading' | 'ready' | 'error';
 
 export type UseJournalEntriesResult = {
   entries: JournalEntry[];
@@ -19,7 +18,7 @@ export function useJournalEntries(): UseJournalEntriesResult {
   const repository = useReadyJournalRepository();
 
   const [entries, setEntries] = useState<JournalEntry[]>([]);
-  const [status, setStatus] = useState<JournalEntriesStatus>('loading');
+  const [status, setStatus] = useState<JournalEntriesStatus>(JournalEntriesStatus.Loading);
   const [refreshError, setRefreshError] = useState<string | null>(null);
 
   const hasLoadedSuccessfullyRef = useRef(false);
@@ -30,7 +29,7 @@ export function useJournalEntries(): UseJournalEntriesResult {
     const wasReady = hasLoadedSuccessfullyRef.current;
 
     if (!wasReady) {
-      setStatus('loading');
+      setStatus(JournalEntriesStatus.Loading);
     }
     setRefreshError(null);
 
@@ -41,7 +40,7 @@ export function useJournalEntries(): UseJournalEntriesResult {
       }
       hasLoadedSuccessfullyRef.current = true;
       setEntries(next);
-      setStatus('ready');
+      setStatus(JournalEntriesStatus.Ready);
       setRefreshError(null);
     } catch {
       if (generation !== loadGenerationRef.current) {
@@ -50,7 +49,7 @@ export function useJournalEntries(): UseJournalEntriesResult {
       if (wasReady) {
         setRefreshError(LOAD_ENTRIES_ERROR_MESSAGE);
       } else {
-        setStatus('error');
+        setStatus(JournalEntriesStatus.Error);
       }
     }
   }, [repository]);
