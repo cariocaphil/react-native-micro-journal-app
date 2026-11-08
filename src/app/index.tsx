@@ -1,14 +1,18 @@
 import { router } from 'expo-router';
-import { Pressable, StyleSheet } from 'react-native';
+import { StyleSheet } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
+import { JournalEntriesError } from '@/components/journal-entries-error';
+import { JournalEntriesLoading } from '@/components/journal-entries-loading';
+import { JournalEntriesReady } from '@/components/journal-entries-ready';
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
 import { Spacing } from '@/constants/theme';
-import { useTheme } from '@/hooks/use-theme';
+import { JournalEntriesStatus } from '@/hooks/journal-entries-status';
+import { useJournalEntries } from '@/hooks/use-journal-entries';
 
 export default function HomeScreen() {
-  const theme = useTheme();
+  const { entries, status, refreshError, reload } = useJournalEntries();
 
   return (
     <ThemedView style={styles.container}>
@@ -21,20 +25,18 @@ export default function HomeScreen() {
           A small space for short reflections.
         </ThemedText>
 
-        <ThemedText themeColor="textSecondary" style={styles.emptyState}>
-          No entries yet
-        </ThemedText>
-
-        <Pressable
-          accessibilityRole="button"
-          accessibilityLabel="New Entry"
-          onPress={() => router.push('/new-entry')}
-          style={({ pressed }) => [
-            styles.cta,
-            { backgroundColor: theme.primary, opacity: pressed ? 0.85 : 1 },
-          ]}>
-          <ThemedText style={[styles.ctaLabel, { color: theme.onPrimary }]}>New Entry</ThemedText>
-        </Pressable>
+        {status === JournalEntriesStatus.Loading ? <JournalEntriesLoading /> : null}
+        {status === JournalEntriesStatus.Error ? (
+          <JournalEntriesError onRetry={reload} />
+        ) : null}
+        {status === JournalEntriesStatus.Ready ? (
+          <JournalEntriesReady
+            entries={entries}
+            refreshError={refreshError}
+            onRetry={reload}
+            onNewEntry={() => router.push('/new-entry')}
+          />
+        ) : null}
       </SafeAreaView>
     </ThemedView>
   );
@@ -52,20 +54,6 @@ const styles = StyleSheet.create({
   },
   intro: {
     marginTop: Spacing.two,
-  },
-  emptyState: {
-    marginTop: Spacing.five,
-    marginBottom: Spacing.four,
-  },
-  cta: {
-    alignSelf: 'flex-start',
-    paddingVertical: Spacing.three,
-    paddingHorizontal: Spacing.four,
-    borderRadius: Spacing.two,
-  },
-  ctaLabel: {
-    fontSize: 16,
-    lineHeight: 24,
-    fontWeight: 600,
+    marginBottom: Spacing.three,
   },
 });
