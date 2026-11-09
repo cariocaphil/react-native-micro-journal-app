@@ -35,6 +35,9 @@ export default function HomeScreen() {
             refreshError={refreshError}
             onRetry={reload}
             onNewEntry={() => router.push('/new-entry')}
+            onPressEntry={(id) =>
+              router.push({ pathname: '/entry/[id]', params: { id } })
+            }
           />
         ) : null}
       </SafeAreaView>

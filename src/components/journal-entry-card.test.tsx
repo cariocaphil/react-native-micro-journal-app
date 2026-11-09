@@ -1,5 +1,5 @@
-import { describe, expect, it } from '@jest/globals';
-import { render, screen } from '@testing-library/react-native';
+import { describe, expect, it, jest } from '@jest/globals';
+import { fireEvent, render, screen } from '@testing-library/react-native';
 
 import { JournalEntryCard } from '@/components/journal-entry-card';
 import type { JournalEntry } from '@/domain/journal/journal-entry';
@@ -29,5 +29,17 @@ describe('JournalEntryCard', () => {
     expect(
       screen.getByLabelText(`Mood great, ${formattedDate}. A quiet morning walk.`),
     ).toBeTruthy();
+  });
+
+  it('calls onPress when provided and pressed', async () => {
+    const onPress = jest.fn();
+    await render(<JournalEntryCard entry={entry} onPress={onPress} />);
+
+    const formattedDate = formatEntryDate(entry.createdAt);
+    await fireEvent.press(
+      screen.getByLabelText(`Mood great, ${formattedDate}. A quiet morning walk.`),
+    );
+
+    expect(onPress).toHaveBeenCalledTimes(1);
   });
 });

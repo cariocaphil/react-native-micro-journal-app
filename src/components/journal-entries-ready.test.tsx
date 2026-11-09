@@ -31,6 +31,7 @@ describe('JournalEntriesReady', () => {
         refreshError={null}
         onRetry={jest.fn()}
         onNewEntry={onNewEntry}
+        onPressEntry={jest.fn()}
       />,
     );
 
@@ -47,6 +48,7 @@ describe('JournalEntriesReady', () => {
         refreshError={null}
         onRetry={jest.fn()}
         onNewEntry={jest.fn()}
+        onPressEntry={jest.fn()}
       />,
     );
 
@@ -58,6 +60,26 @@ describe('JournalEntriesReady', () => {
     expect(screen.getByText(formatEntryDate(entryOne.createdAt))).toBeTruthy();
   });
 
+  it('calls onPressEntry with the entry id when a card is pressed', async () => {
+    const onPressEntry = jest.fn();
+    await render(
+      <JournalEntriesReady
+        entries={[entryOne]}
+        refreshError={null}
+        onRetry={jest.fn()}
+        onNewEntry={jest.fn()}
+        onPressEntry={onPressEntry}
+      />,
+    );
+
+    const formattedDate = formatEntryDate(entryOne.createdAt);
+    await fireEvent.press(
+      screen.getByLabelText(`Mood good, ${formattedDate}. First reflection.`),
+    );
+
+    expect(onPressEntry).toHaveBeenCalledWith('entry-1');
+  });
+
   it('shows a refresh error banner and calls onRetry', async () => {
     const onRetry = jest.fn();
     await render(
@@ -66,6 +88,7 @@ describe('JournalEntriesReady', () => {
         refreshError={LOAD_ENTRIES_ERROR_MESSAGE}
         onRetry={onRetry}
         onNewEntry={jest.fn()}
+        onPressEntry={jest.fn()}
       />,
     );
 
