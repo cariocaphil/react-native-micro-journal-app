@@ -6,10 +6,8 @@ import EntryDetailScreen from '@/app/entry/[id]';
 import type { JournalRepository } from '@/database/journal-repository';
 import { JournalRepositoryProvider } from '@/database/journal-repository-context';
 import type { JournalEntry } from '@/domain/journal/journal-entry';
-import {
-  DELETE_ENTRY_ERROR_MESSAGE,
-  LOAD_ENTRY_ERROR_MESSAGE,
-} from '@/hooks/use-journal-entry-detail';
+import { DELETE_ENTRY_ERROR_MESSAGE } from '@/hooks/use-journal-entry-delete';
+import { LOAD_ENTRY_ERROR_MESSAGE } from '@/hooks/use-journal-entry-detail';
 import { formatEntryDate } from '@/journal/format-entry-date';
 
 const mockBack = jest.fn();

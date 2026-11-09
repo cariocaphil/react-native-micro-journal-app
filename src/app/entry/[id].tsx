@@ -12,18 +12,19 @@ import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
 import { Spacing } from '@/constants/theme';
 import { JournalEntryDetailStatus } from '@/hooks/journal-entry-detail-status';
-import { useTheme } from '@/hooks/use-theme';
+import { useJournalEntryDelete } from '@/hooks/use-journal-entry-delete';
 import {
   LOAD_ENTRY_ERROR_MESSAGE,
   useJournalEntryDetail,
 } from '@/hooks/use-journal-entry-detail';
+import { useTheme } from '@/hooks/use-theme';
 import { formatEntryDate } from '@/journal/format-entry-date';
 
 export default function EntryDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string | string[] }>();
   const theme = useTheme();
-  const { entry, status, deleteError, isDeleting, reload, requestDelete } =
-    useJournalEntryDetail(id);
+  const { entry, status, reload } = useJournalEntryDetail(id);
+  const { deleteError, isDeleting, requestDelete } = useJournalEntryDelete(id);
 
   return (
     <ThemedView style={styles.container}>
