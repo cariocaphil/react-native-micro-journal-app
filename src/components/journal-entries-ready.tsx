@@ -11,6 +11,7 @@ type JournalEntriesReadyProps = {
   refreshError: string | null;
   onRetry: () => void;
   onNewEntry: () => void;
+  onPressEntry: (id: string) => void;
 };
 
 export function JournalEntriesReady({
@@ -18,11 +19,12 @@ export function JournalEntriesReady({
   refreshError,
   onRetry,
   onNewEntry,
+  onPressEntry,
 }: JournalEntriesReadyProps) {
   const theme = useTheme();
 
   function renderEntry({ item }: { item: JournalEntry }) {
-    return <JournalEntryCard entry={item} />;
+    return <JournalEntryCard entry={item} onPress={() => onPressEntry(item.id)} />;
   }
 
   return (

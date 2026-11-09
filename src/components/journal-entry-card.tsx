@@ -1,4 +1,4 @@
-import { StyleSheet, View } from 'react-native';
+import { Pressable, StyleSheet, View } from 'react-native';
 
 import { ThemedText } from '@/components/themed-text';
 import { Spacing } from '@/constants/theme';
@@ -8,23 +8,16 @@ import { formatEntryDate } from '@/journal/format-entry-date';
 
 type JournalEntryCardProps = {
   entry: JournalEntry;
+  onPress?: () => void;
 };
 
-export function JournalEntryCard({ entry }: JournalEntryCardProps) {
+export function JournalEntryCard({ entry, onPress }: JournalEntryCardProps) {
   const theme = useTheme();
   const formattedDate = formatEntryDate(entry.createdAt);
+  const accessibilityLabel = `Mood ${entry.mood}, ${formattedDate}. ${entry.content}`;
 
-  return (
-    <View
-      accessibilityRole="summary"
-      accessibilityLabel={`Mood ${entry.mood}, ${formattedDate}. ${entry.content}`}
-      style={[
-        styles.card,
-        {
-          backgroundColor: theme.inputBackground,
-          borderColor: theme.border,
-        },
-      ]}>
+  const body = (
+    <>
       <View style={styles.metaRow}>
         <ThemedText type="smallBold" style={styles.mood}>
           {entry.mood}
@@ -34,6 +27,32 @@ export function JournalEntryCard({ entry }: JournalEntryCardProps) {
         </ThemedText>
       </View>
       <ThemedText style={styles.content}>{entry.content}</ThemedText>
+    </>
+  );
+
+  const cardStyle = [
+    styles.card,
+    {
+      backgroundColor: theme.inputBackground,
+      borderColor: theme.border,
+    },
+  ];
+
+  if (onPress) {
+    return (
+      <Pressable
+        accessibilityRole="button"
+        accessibilityLabel={accessibilityLabel}
+        onPress={onPress}
+        style={({ pressed }) => [...cardStyle, { opacity: pressed ? 0.85 : 1 }]}>
+        {body}
+      </Pressable>
+    );
+  }
+
+  return (
+    <View accessibilityRole="summary" accessibilityLabel={accessibilityLabel} style={cardStyle}>
+      {body}
     </View>
   );
 }

@@ -210,4 +210,21 @@ describe('HomeScreen', () => {
 
     expect(mockPush).toHaveBeenCalledWith('/new-entry');
   });
+
+  it('navigates to the entry detail route when an entry is pressed', async () => {
+    const repository = createMockRepository(
+      jest.fn(async () => [entryOne]) as JournalRepository['findAll'],
+    );
+    await renderHome(repository);
+
+    const formattedDate = formatEntryDate(entryOne.createdAt);
+    await fireEvent.press(
+      await screen.findByLabelText(`Mood good, ${formattedDate}. First reflection.`),
+    );
+
+    expect(mockPush).toHaveBeenCalledWith({
+      pathname: '/entry/[id]',
+      params: { id: 'entry-1' },
+    });
+  });
 });

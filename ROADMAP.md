@@ -42,23 +42,23 @@ Introduce Expo SQLite, database initialization, schema migrations, and a `Journa
 
 Connect the New Entry screen to domain validation and SQLite persistence: form input, mood selection, validate with `CreateJournalEntrySchema`, save via `JournalRepository`, navigate home on success. Wire a thin repository provider in the root layout (no service layer). Entry listing remains out of scope.
 
-### PR #6 — Journal Entry Listing & Home Screen (In progress)
+### PR #6 — Journal Entry Listing & Home Screen (Merged)
 
 **Branch:** `feature/6-journal-entry-list`
 
 Replace the home placeholder with a `FlatList` of persisted entries via existing `JournalRepository.findAll()` (newest first). Load on screen focus with `useFocusEffect`, including loading, empty, initial-error, and non-blocking refresh-error states. Completes the write → persist → read → display loop without a service layer.
 
-### PR #7 — Entry Editing (Planned)
+### PR #7 — Journal Entry Detail & Deletion (In progress)
 
-**Branch:** `feature/7-entry-editor`
+**Branch:** `feature/7-entry-detail-deletion`
 
-Implement entry editing, form validation for updates, keyboard handling, and navigation from the timeline.
+Open an entry from Home via `/entry/[id]`, load with `findById`, show full content/mood/dates, and delete after native Alert confirmation. Return home so focus refresh updates the list. No service layer; editing remains out of scope.
 
-### PR #8 — Mood Picker & Entry Deletion (Planned)
+### PR #8 — Entry Editing (Planned)
 
-**Branch:** `feature/8-mood-picker`
+**Branch:** `feature/8-entry-editor`
 
-Refine reusable mood selection, entry deletion with confirmation, and corresponding tests.
+Implement entry editing, form validation for updates, keyboard handling, and navigation from the detail screen.
 
 **Milestone:** Fully functional offline journal.
 
