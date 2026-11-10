@@ -1,4 +1,4 @@
-import { useLocalSearchParams } from 'expo-router';
+import { router, useLocalSearchParams } from 'expo-router';
 import { StyleSheet } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
@@ -7,11 +7,20 @@ import { ThemedView } from '@/components/themed-view';
 import { Spacing } from '@/constants/theme';
 import { useJournalEntryDelete } from '@/hooks/use-journal-entry-delete';
 import { useJournalEntryDetail } from '@/hooks/use-journal-entry-detail';
+import { normalizeEntryId } from '@/hooks/normalize-entry-id';
 
 export default function EntryDetailScreen() {
-  const { id } = useLocalSearchParams<{ id: string | string[] }>();
-  const { entry, status, reload } = useJournalEntryDetail(id);
-  const { deleteError, isDeleting, requestDelete } = useJournalEntryDelete(id);
+  const { id: rawId } = useLocalSearchParams<{ id: string | string[] }>();
+  const id = normalizeEntryId(rawId);
+  const { entry, status, reload } = useJournalEntryDetail(rawId);
+  const { deleteError, isDeleting, requestDelete } = useJournalEntryDelete(rawId);
+
+  function onEdit() {
+    if (!id || isDeleting) {
+      return;
+    }
+    router.push({ pathname: '/entry/[id]/edit', params: { id } });
+  }
 
   return (
     <ThemedView style={styles.container}>
@@ -23,6 +32,7 @@ export default function EntryDetailScreen() {
           deleteError={deleteError}
           isDeleting={isDeleting}
           requestDelete={requestDelete}
+          onEdit={onEdit}
         />
       </SafeAreaView>
     </ThemedView>

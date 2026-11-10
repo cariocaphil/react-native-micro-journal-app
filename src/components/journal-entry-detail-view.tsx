@@ -21,6 +21,7 @@ type JournalEntryDetailViewProps = {
   deleteError: string | null;
   isDeleting: boolean;
   requestDelete: () => void;
+  onEdit: () => void;
 };
 
 export function JournalEntryDetailView({
@@ -30,6 +31,7 @@ export function JournalEntryDetailView({
   deleteError,
   isDeleting,
   requestDelete,
+  onEdit,
 }: JournalEntryDetailViewProps) {
   const theme = useTheme();
 
@@ -95,6 +97,22 @@ export function JournalEntryDetailView({
 
       <Pressable
         accessibilityRole="button"
+        accessibilityLabel="Edit entry"
+        accessibilityState={{ disabled: isDeleting }}
+        disabled={isDeleting}
+        onPress={onEdit}
+        style={({ pressed }) => [
+          styles.editButton,
+          {
+            borderColor: theme.border,
+            opacity: isDeleting ? 0.6 : pressed ? 0.85 : 1,
+          },
+        ]}>
+        <ThemedText type="smallBold">Edit</ThemedText>
+      </Pressable>
+
+      <Pressable
+        accessibilityRole="button"
         accessibilityLabel={isDeleting ? 'Deleting' : 'Delete entry'}
         accessibilityState={{ disabled: isDeleting, busy: isDeleting }}
         disabled={isDeleting}
@@ -145,11 +163,21 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderRadius: Spacing.two,
   },
-  deleteButton: {
+  editButton: {
     alignSelf: 'flex-start',
     minHeight: 44,
     justifyContent: 'center',
     marginTop: Spacing.five,
+    paddingHorizontal: Spacing.four,
+    paddingVertical: Spacing.three,
+    borderWidth: 1,
+    borderRadius: Spacing.two,
+  },
+  deleteButton: {
+    alignSelf: 'flex-start',
+    minHeight: 44,
+    justifyContent: 'center',
+    marginTop: Spacing.three,
     paddingHorizontal: Spacing.four,
     paddingVertical: Spacing.three,
     borderWidth: 1,

@@ -31,7 +31,8 @@ export function RootNavigator() {
     <Stack>
       <Stack.Screen name="index" options={{ title: 'Micro Journal' }} />
       <Stack.Screen name="new-entry" options={{ title: 'New Entry' }} />
-      <Stack.Screen name="entry/[id]" options={{ title: 'Entry' }} />
+      <Stack.Screen name="entry/[id]/index" options={{ title: 'Entry' }} />
+      <Stack.Screen name="entry/[id]/edit" options={{ title: 'Edit Entry' }} />
     </Stack>
   );
 }
