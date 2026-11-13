@@ -25,6 +25,7 @@ describe('JournalEntryDetailView', () => {
         deleteError={null}
         isDeleting={false}
         requestDelete={jest.fn()}
+        onEdit={jest.fn()}
       />,
     );
 
@@ -43,6 +44,7 @@ describe('JournalEntryDetailView', () => {
         deleteError={null}
         isDeleting={false}
         requestDelete={jest.fn()}
+        onEdit={jest.fn()}
       />,
     );
 
@@ -59,12 +61,31 @@ describe('JournalEntryDetailView', () => {
         deleteError={null}
         isDeleting={false}
         requestDelete={jest.fn()}
+        onEdit={jest.fn()}
       />,
     );
 
     expect(screen.getByText(LOAD_ENTRY_ERROR_MESSAGE)).toBeTruthy();
     await fireEvent.press(screen.getByLabelText('Retry'));
     expect(reload).toHaveBeenCalledTimes(1);
+  });
+
+  it('calls onEdit when Edit is pressed', async () => {
+    const onEdit = jest.fn();
+    await render(
+      <JournalEntryDetailView
+        status={JournalEntryDetailStatus.Ready}
+        entry={entry}
+        reload={jest.fn()}
+        deleteError={null}
+        isDeleting={false}
+        requestDelete={jest.fn()}
+        onEdit={onEdit}
+      />,
+    );
+
+    await fireEvent.press(screen.getByLabelText('Edit entry'));
+    expect(onEdit).toHaveBeenCalledTimes(1);
   });
 
   it('calls requestDelete when Delete is pressed', async () => {
@@ -77,6 +98,7 @@ describe('JournalEntryDetailView', () => {
         deleteError={null}
         isDeleting={false}
         requestDelete={requestDelete}
+        onEdit={jest.fn()}
       />,
     );
 

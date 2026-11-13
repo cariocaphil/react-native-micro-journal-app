@@ -2,7 +2,7 @@ import { beforeEach, describe, expect, it, jest } from '@jest/globals';
 import { fireEvent, render, screen, waitFor } from '@testing-library/react-native';
 import { Alert } from 'react-native';
 
-import EntryDetailScreen from '@/app/entry/[id]';
+import EntryDetailScreen from '@/app/entry/[id]/index';
 import type { JournalRepository } from '@/database/journal-repository';
 import { JournalRepositoryProvider } from '@/database/journal-repository-context';
 import type { JournalEntry } from '@/domain/journal/journal-entry';
@@ -12,6 +12,7 @@ import { formatEntryDate } from '@/journal/format-entry-date';
 
 const mockBack = jest.fn();
 const mockReplace = jest.fn();
+const mockPush = jest.fn();
 const mockCanGoBack = jest.fn(() => true);
 let mockRouteId: string | string[] | undefined = 'entry-1';
 
@@ -24,6 +25,7 @@ jest.mock('expo-router', () => {
     router: {
       back: (...args: unknown[]) => mockBack(...args),
       replace: (...args: unknown[]) => mockReplace(...args),
+      push: (...args: unknown[]) => mockPush(...args),
       canGoBack: () => mockCanGoBack(),
     },
     useLocalSearchParams: () => ({ id: mockRouteId }),
@@ -83,6 +85,7 @@ describe('EntryDetailScreen', () => {
     mockRouteId = 'entry-1';
     mockBack.mockClear();
     mockReplace.mockClear();
+    mockPush.mockClear();
     mockCanGoBack.mockReturnValue(true);
     jest.spyOn(Alert, 'alert').mockImplementation(jest.fn());
   });
@@ -116,6 +119,18 @@ describe('EntryDetailScreen', () => {
 
     expect(await screen.findByText('A full journal reflection.')).toBeTruthy();
     expect(findById).toHaveBeenCalledTimes(2);
+  });
+
+  it('opens the edit screen for the current entry', async () => {
+    await renderDetail(createMockRepository());
+
+    expect(await screen.findByText('A full journal reflection.')).toBeTruthy();
+    await fireEvent.press(screen.getByLabelText('Edit entry'));
+
+    expect(mockPush).toHaveBeenCalledWith({
+      pathname: '/entry/[id]/edit',
+      params: { id: 'entry-1' },
+    });
   });
 
   it('deletes after confirmation and navigates home', async () => {
