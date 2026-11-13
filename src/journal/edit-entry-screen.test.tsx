@@ -68,7 +68,7 @@ function createMockRepository(options?: {
 }
 
 async function renderEdit(repository: JournalRepository) {
-  const Wrapper = createRepositoryQueryWrapper(repository);
+  const { Wrapper } = createRepositoryQueryWrapper(repository);
   return render(
     <Wrapper>
       <EditEntryScreen />

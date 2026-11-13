@@ -3,10 +3,7 @@ import { fireEvent, render, screen, waitFor } from '@testing-library/react-nativ
 
 import HomeScreen from '@/app/index';
 import type { JournalRepository } from '@/database/journal-repository';
-import {
-  createRepositoryQueryWrapper,
-  createRepositoryQueryWrapperWithClient,
-} from '@/database/test-query-provider';
+import { createRepositoryQueryWrapper } from '@/database/test-query-provider';
 import type { JournalEntry } from '@/domain/journal/journal-entry';
 import { LOAD_ENTRIES_ERROR_MESSAGE } from '@/hooks/use-journal-entries';
 import { formatEntryDate } from '@/journal/format-entry-date';
@@ -50,7 +47,7 @@ function createMockRepository(
 }
 
 async function renderHome(repository: JournalRepository) {
-  const Wrapper = createRepositoryQueryWrapper(repository);
+  const { Wrapper } = createRepositoryQueryWrapper(repository);
   return render(
     <Wrapper>
       <HomeScreen />
@@ -129,7 +126,7 @@ describe('HomeScreen', () => {
       .mockResolvedValueOnce([entryOne])
       .mockRejectedValueOnce(new Error('refresh failed'));
     const repository = createMockRepository(findAll);
-    const { Wrapper, queryClient } = createRepositoryQueryWrapperWithClient(repository);
+    const { Wrapper, queryClient } = createRepositoryQueryWrapper(repository);
 
     await render(
       <Wrapper>
@@ -157,7 +154,7 @@ describe('HomeScreen', () => {
       .mockResolvedValueOnce([entryOne])
       .mockResolvedValueOnce([entryTwo, entryOne]);
     const repository = createMockRepository(findAll);
-    const { Wrapper, queryClient } = createRepositoryQueryWrapperWithClient(repository);
+    const { Wrapper, queryClient } = createRepositoryQueryWrapper(repository);
 
     await render(
       <Wrapper>

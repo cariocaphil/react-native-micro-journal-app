@@ -34,7 +34,7 @@ describe('useJournalEntryDetail', () => {
     const repository = createMockRepository(findById);
 
     const { result } = await renderHook(() => useJournalEntryDetail('entry-1'), {
-      wrapper: createRepositoryQueryWrapper(repository),
+      wrapper: createRepositoryQueryWrapper(repository).Wrapper,
     });
 
     await waitFor(() => {
@@ -49,7 +49,7 @@ describe('useJournalEntryDetail', () => {
     const repository = createMockRepository(findById);
 
     const { result } = await renderHook(() => useJournalEntryDetail('missing'), {
-      wrapper: createRepositoryQueryWrapper(repository),
+      wrapper: createRepositoryQueryWrapper(repository).Wrapper,
     });
 
     await waitFor(() => {
@@ -63,7 +63,7 @@ describe('useJournalEntryDetail', () => {
     const repository = createMockRepository(findById);
 
     const { result } = await renderHook(() => useJournalEntryDetail('   '), {
-      wrapper: createRepositoryQueryWrapper(repository),
+      wrapper: createRepositoryQueryWrapper(repository).Wrapper,
     });
 
     expect(result.current.status).toBe(JournalEntryDetailStatus.NotFound);
@@ -78,7 +78,7 @@ describe('useJournalEntryDetail', () => {
     const repository = createMockRepository(findById);
 
     const { result } = await renderHook(() => useJournalEntryDetail('entry-1'), {
-      wrapper: createRepositoryQueryWrapper(repository),
+      wrapper: createRepositoryQueryWrapper(repository).Wrapper,
     });
 
     await waitFor(() => {
@@ -117,7 +117,7 @@ describe('useJournalEntryDetail', () => {
       ({ id }: { id: string }) => useJournalEntryDetail(id),
       {
         initialProps: { id: 'entry-1' },
-        wrapper: createRepositoryQueryWrapper(repository),
+        wrapper: createRepositoryQueryWrapper(repository).Wrapper,
       },
     );
 

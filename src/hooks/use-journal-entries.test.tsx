@@ -51,7 +51,7 @@ describe('useJournalEntries', () => {
     const repository = createMockRepository(findAll);
 
     const { result } = await renderHook(() => useJournalEntries(), {
-      wrapper: createRepositoryQueryWrapper(repository),
+      wrapper: createRepositoryQueryWrapper(repository).Wrapper,
     });
 
     expect(result.current.status).toBe(JournalEntriesStatus.Loading);
@@ -75,7 +75,7 @@ describe('useJournalEntries', () => {
     );
 
     const { result } = await renderHook(() => useJournalEntries(), {
-      wrapper: createRepositoryQueryWrapper(repository),
+      wrapper: createRepositoryQueryWrapper(repository).Wrapper,
     });
 
     await waitFor(() => {
@@ -93,7 +93,7 @@ describe('useJournalEntries', () => {
     const repository = createMockRepository(findAll);
 
     const { result } = await renderHook(() => useJournalEntries(), {
-      wrapper: createRepositoryQueryWrapper(repository),
+      wrapper: createRepositoryQueryWrapper(repository).Wrapper,
     });
 
     await waitFor(() => {
@@ -121,7 +121,7 @@ describe('useJournalEntries', () => {
     const repository = createMockRepository(findAll);
 
     const { result } = await renderHook(() => useJournalEntries(), {
-      wrapper: createRepositoryQueryWrapper(repository),
+      wrapper: createRepositoryQueryWrapper(repository).Wrapper,
     });
 
     await waitFor(() => {
@@ -149,7 +149,7 @@ describe('useJournalEntries', () => {
     const repository = createMockRepository(findAll);
 
     const { result } = await renderHook(() => useJournalEntries(), {
-      wrapper: createRepositoryQueryWrapper(repository),
+      wrapper: createRepositoryQueryWrapper(repository).Wrapper,
     });
 
     await waitFor(() => {

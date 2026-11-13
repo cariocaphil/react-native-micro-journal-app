@@ -41,7 +41,7 @@ function createMockRepository(deleteImpl?: JournalRepository['delete']): Journal
 }
 
 function createWrapper(repository: JournalRepository) {
-  return createRepositoryQueryWrapper(repository);
+  return createRepositoryQueryWrapper(repository).Wrapper;
 }
 
 type AlertButton = { text?: string; onPress?: () => void };

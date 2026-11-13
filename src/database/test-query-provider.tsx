@@ -8,18 +8,6 @@ import { createTestQueryClient } from '@/database/query-client';
 export function createRepositoryQueryWrapper(repository: JournalRepository) {
   const queryClient = createTestQueryClient();
 
-  return function Wrapper({ children }: { children: ReactNode }) {
-    return (
-      <JournalRepositoryProvider repository={repository}>
-        <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
-      </JournalRepositoryProvider>
-    );
-  };
-}
-
-export function createRepositoryQueryWrapperWithClient(repository: JournalRepository) {
-  const queryClient = createTestQueryClient();
-
   function Wrapper({ children }: { children: ReactNode }) {
     return (
       <JournalRepositoryProvider repository={repository}>

@@ -40,7 +40,7 @@ function createMockRepository(
 }
 
 function createWrapper(repository: JournalRepository) {
-  return createRepositoryQueryWrapper(repository);
+  return createRepositoryQueryWrapper(repository).Wrapper;
 }
 
 describe('useEditJournalEntry', () => {
