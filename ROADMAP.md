@@ -1,6 +1,6 @@
 # Development Roadmap
 
-Incremental 12-PR plan for Micro Journal. See [README.md](README.md) for setup and run instructions.
+Incremental PR plan for Micro Journal. See [README.md](README.md) for setup and run instructions.
 
 **Status key:** Merged · In progress · Planned
 
@@ -48,33 +48,39 @@ Connect the New Entry screen to domain validation and SQLite persistence: form i
 
 Replace the home placeholder with a `FlatList` of persisted entries via existing `JournalRepository.findAll()` (newest first). Load on screen focus with `useFocusEffect`, including loading, empty, initial-error, and non-blocking refresh-error states. Completes the write → persist → read → display loop without a service layer.
 
-### PR #7 — Journal Entry Detail & Deletion (In progress)
+### PR #7 — Journal Entry Detail & Deletion (Merged)
 
 **Branch:** `feature/7-entry-detail-deletion`
 
-Open an entry from Home via `/entry/[id]`, load with `findById`, show full content/mood/dates, and delete after native Alert confirmation. Return home so focus refresh updates the list. No service layer; editing remains out of scope.
+Open an entry from Home via `/entry/[id]`, load with `findById`, show full content/mood/dates, and delete after native Alert confirmation. Return home so the listing refreshes. No service layer; editing remains out of scope.
 
-### PR #8 — Entry Editing (Planned)
+### PR #8 — Entry Editing (Merged)
 
-**Branch:** `feature/8-entry-editor`
+**Branch:** `feature/8-journal-entry-editing`
 
 Implement entry editing, form validation for updates, keyboard handling, and navigation from the detail screen.
 
-**Milestone:** Fully functional offline journal.
+**Milestone:** Fully functional offline journal (create → list → view → edit → delete).
+
+### PR #9 — TanStack Query Integration (In progress)
+
+**Branch:** `refactor/9-tanstack-query-integration`
+
+Introduce `@tanstack/react-query` as an in-memory cache and synchronization layer over SQLite. Migrate list/detail loading to `useQuery` and create/update/delete to `useMutation` with cache invalidation. Remove custom focus-reload and generation-counter lifecycle code without changing journal functionality. SQLite remains the source of truth; no network or cache persistence.
 
 ---
 
 ## Phase 3 — Security & Privacy
 
-### PR #9 — Biometric Authentication (Planned)
+### PR #10 — Biometric Authentication (Planned)
 
-**Branch:** `feature/9-biometric-auth`
+**Branch:** `feature/10-biometric-auth`
 
 Integrate `expo-local-authentication`, detect biometric capabilities, implement an unlock screen, and handle authentication failures and unavailable biometrics.
 
-### PR #10 — Protected Navigation & App Lifecycle (Planned)
+### PR #11 — Protected Navigation & App Lifecycle (Planned)
 
-**Branch:** `feature/10-app-lock`
+**Branch:** `feature/11-app-lock`
 
 Protect journal routes, handle foreground/background transitions, and re-lock the application appropriately. Ensure journal content is not displayed while locked.
 
@@ -84,15 +90,15 @@ Protect journal routes, handle foreground/background transitions, and re-lock th
 
 ## Phase 4 — Polish & Encryption
 
-### PR #11 — Dark Mode, Accessibility & UX (Planned)
+### PR #12 — Dark Mode, Accessibility & UX (Planned)
 
-**Branch:** `feature/11-ui-polish`
+**Branch:** `feature/12-ui-polish`
 
 Refine the existing light/dark theme implementation, improve accessibility, keyboard interactions, empty states, and overall usability.
 
-### PR #12 — Encrypted Local Storage (Planned)
+### PR #13 — Encrypted Local Storage (Planned)
 
-**Branch:** `security/12-database-encryption`
+**Branch:** `security/13-database-encryption`
 
 Investigate and implement SQLCipher database encryption, secure encryption-key management, and appropriate migration and recovery behavior. Use Expo Development Builds where required.
 
