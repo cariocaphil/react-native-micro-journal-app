@@ -1,16 +1,10 @@
-import {
-  ActivityIndicator,
-  Pressable,
-  ScrollView,
-  StyleSheet,
-  View,
-} from 'react-native';
+import { Pressable, ScrollView, StyleSheet } from 'react-native';
 
+import { JournalEntryLoadState } from '@/components/journal-entry-load-state';
 import { ThemedText } from '@/components/themed-text';
 import { Spacing } from '@/constants/theme';
 import type { JournalEntry } from '@/domain/journal/journal-entry';
 import { JournalEntryDetailStatus } from '@/hooks/journal-entry-detail-status';
-import { LOAD_ENTRY_ERROR_MESSAGE } from '@/hooks/use-journal-entry-detail';
 import { useTheme } from '@/hooks/use-theme';
 import { formatEntryDate } from '@/journal/format-entry-date';
 
@@ -35,39 +29,12 @@ export function JournalEntryDetailView({
 }: JournalEntryDetailViewProps) {
   const theme = useTheme();
 
-  if (status === JournalEntryDetailStatus.Loading) {
-    return (
-      <View style={styles.centeredState} accessibilityLabel="Loading entry">
-        <ActivityIndicator color={theme.primary} />
-        <ThemedText themeColor="textSecondary">Loading…</ThemedText>
-      </View>
-    );
-  }
-
-  if (status === JournalEntryDetailStatus.NotFound) {
-    return (
-      <View style={styles.centeredState}>
-        <ThemedText themeColor="textSecondary">This entry could not be found.</ThemedText>
-      </View>
-    );
-  }
-
-  if (status === JournalEntryDetailStatus.Error) {
-    return (
-      <View style={styles.centeredState}>
-        <ThemedText themeColor="error">{LOAD_ENTRY_ERROR_MESSAGE}</ThemedText>
-        <Pressable
-          accessibilityRole="button"
-          accessibilityLabel="Retry"
-          onPress={reload}
-          style={({ pressed }) => [
-            styles.secondaryButton,
-            { borderColor: theme.border, opacity: pressed ? 0.85 : 1 },
-          ]}>
-          <ThemedText type="smallBold">Retry</ThemedText>
-        </Pressable>
-      </View>
-    );
+  if (
+    status === JournalEntryDetailStatus.Loading ||
+    status === JournalEntryDetailStatus.NotFound ||
+    status === JournalEntryDetailStatus.Error
+  ) {
+    return <JournalEntryLoadState status={status} reload={reload} />;
   }
 
   if (status !== JournalEntryDetailStatus.Ready || !entry) {
@@ -133,12 +100,6 @@ export function JournalEntryDetailView({
 }
 
 const styles = StyleSheet.create({
-  centeredState: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'flex-start',
-    gap: Spacing.three,
-  },
   content: {
     paddingBottom: Spacing.four,
     gap: Spacing.two,
@@ -154,14 +115,6 @@ const styles = StyleSheet.create({
   },
   deleteError: {
     marginTop: Spacing.three,
-  },
-  secondaryButton: {
-    minHeight: 44,
-    justifyContent: 'center',
-    paddingHorizontal: Spacing.four,
-    paddingVertical: Spacing.two,
-    borderWidth: 1,
-    borderRadius: Spacing.two,
   },
   editButton: {
     alignSelf: 'flex-start',
