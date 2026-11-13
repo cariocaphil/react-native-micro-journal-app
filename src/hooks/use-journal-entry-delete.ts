@@ -1,9 +1,11 @@
+import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { router } from 'expo-router';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { Alert } from 'react-native';
 
 import { useReadyJournalRepository } from '@/database/journal-repository-context';
 import { normalizeEntryId } from '@/hooks/normalize-entry-id';
+import { journalKeys } from '@/journal/journal-query-keys';
 
 export const DELETE_ENTRY_ERROR_MESSAGE = "Couldn't delete this entry. Please try again.";
 
@@ -25,10 +27,10 @@ export function useJournalEntryDelete(
   rawId: string | string[] | undefined,
 ): UseJournalEntryDeleteResult {
   const repository = useReadyJournalRepository();
+  const queryClient = useQueryClient();
   const id = normalizeEntryId(rawId);
 
   const [deleteError, setDeleteError] = useState<string | null>(null);
-  const [isDeleting, setIsDeleting] = useState(false);
 
   const operationIdRef = useRef(0);
   const isDeletingRef = useRef(false);
@@ -46,33 +48,40 @@ export function useJournalEntryDelete(
     };
   }, [id]);
 
+  const { mutateAsync, isPending } = useMutation({
+    mutationFn: (entryId: string) => repository.delete(entryId),
+  });
+
   const performDelete = useCallback(async () => {
     if (!id || isDeletingRef.current) {
       return;
     }
 
     isDeletingRef.current = true;
-    setIsDeleting(true);
     setDeleteError(null);
 
     const operationId = operationIdRef.current;
     const deletingId = id;
 
     try {
-      await repository.delete(deletingId);
+      await mutateAsync(deletingId);
       if (!mountedRef.current || operationId !== operationIdRef.current) {
         return;
       }
+
+      void queryClient.invalidateQueries({ queryKey: journalKeys.entries() });
       leaveDetailScreen();
+      queueMicrotask(() => {
+        queryClient.removeQueries({ queryKey: journalKeys.entry(deletingId) });
+      });
     } catch {
       if (!mountedRef.current || operationId !== operationIdRef.current) {
         return;
       }
       setDeleteError(DELETE_ENTRY_ERROR_MESSAGE);
       isDeletingRef.current = false;
-      setIsDeleting(false);
     }
-  }, [id, repository]);
+  }, [id, mutateAsync, queryClient]);
 
   const requestDelete = useCallback(() => {
     if (!id || isDeletingRef.current) {
@@ -93,7 +102,7 @@ export function useJournalEntryDelete(
 
   return {
     deleteError,
-    isDeleting,
+    isDeleting: isPending,
     requestDelete,
   };
 }

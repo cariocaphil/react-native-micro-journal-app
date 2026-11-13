@@ -1,56 +1,14 @@
-import { beforeEach, describe, expect, it, jest } from '@jest/globals';
+import { describe, expect, it, jest } from '@jest/globals';
 import { act, renderHook, waitFor } from '@testing-library/react-native';
-import type { ReactNode } from 'react';
 
 import type { JournalRepository } from '@/database/journal-repository';
-import { JournalRepositoryProvider } from '@/database/journal-repository-context';
+import { createRepositoryQueryWrapper } from '@/database/test-query-provider';
 import type { JournalEntry } from '@/domain/journal/journal-entry';
 import { JournalEntriesStatus } from '@/hooks/journal-entries-status';
 import {
   LOAD_ENTRIES_ERROR_MESSAGE,
   useJournalEntries,
 } from '@/hooks/use-journal-entries';
-
-type FocusEffectCallback = () => undefined | void | (() => void);
-
-let mockLatestFocusCallback: FocusEffectCallback | null = null;
-let mockLatestFocusCleanup: (() => void) | undefined;
-
-function simulateBlur() {
-  mockLatestFocusCleanup?.();
-  mockLatestFocusCleanup = undefined;
-}
-
-function simulateFocus() {
-  simulateBlur();
-  if (!mockLatestFocusCallback) {
-    throw new Error('No useFocusEffect callback registered');
-  }
-  const cleanup = mockLatestFocusCallback();
-  mockLatestFocusCleanup = typeof cleanup === 'function' ? cleanup : undefined;
-}
-
-jest.mock('expo-router', () => {
-  const React = require('react') as typeof import('react');
-
-  return {
-    useFocusEffect: (callback: FocusEffectCallback) => {
-      React.useEffect(() => {
-        mockLatestFocusCallback = callback;
-        const cleanup = callback();
-        mockLatestFocusCleanup = typeof cleanup === 'function' ? cleanup : undefined;
-
-        return () => {
-          mockLatestFocusCleanup?.();
-          mockLatestFocusCleanup = undefined;
-          if (mockLatestFocusCallback === callback) {
-            mockLatestFocusCallback = null;
-          }
-        };
-      }, [callback]);
-    },
-  };
-});
 
 const entryOne: JournalEntry = {
   id: 'entry-1',
@@ -81,20 +39,7 @@ function createMockRepository(
   };
 }
 
-function createWrapper(repository: JournalRepository) {
-  return function Wrapper({ children }: { children: ReactNode }) {
-    return (
-      <JournalRepositoryProvider repository={repository}>{children}</JournalRepositoryProvider>
-    );
-  };
-}
-
 describe('useJournalEntries', () => {
-  beforeEach(() => {
-    mockLatestFocusCallback = null;
-    mockLatestFocusCleanup = undefined;
-  });
-
   it('starts loading and becomes ready with entries from findAll', async () => {
     let resolveFindAll: ((entries: JournalEntry[]) => void) | undefined;
     const findAll = jest.fn(
@@ -106,7 +51,7 @@ describe('useJournalEntries', () => {
     const repository = createMockRepository(findAll);
 
     const { result } = await renderHook(() => useJournalEntries(), {
-      wrapper: createWrapper(repository),
+      wrapper: createRepositoryQueryWrapper(repository),
     });
 
     expect(result.current.status).toBe(JournalEntriesStatus.Loading);
@@ -130,7 +75,7 @@ describe('useJournalEntries', () => {
     );
 
     const { result } = await renderHook(() => useJournalEntries(), {
-      wrapper: createWrapper(repository),
+      wrapper: createRepositoryQueryWrapper(repository),
     });
 
     await waitFor(() => {
@@ -148,7 +93,7 @@ describe('useJournalEntries', () => {
     const repository = createMockRepository(findAll);
 
     const { result } = await renderHook(() => useJournalEntries(), {
-      wrapper: createWrapper(repository),
+      wrapper: createRepositoryQueryWrapper(repository),
     });
 
     await waitFor(() => {
@@ -176,7 +121,7 @@ describe('useJournalEntries', () => {
     const repository = createMockRepository(findAll);
 
     const { result } = await renderHook(() => useJournalEntries(), {
-      wrapper: createWrapper(repository),
+      wrapper: createRepositoryQueryWrapper(repository),
     });
 
     await waitFor(() => {
@@ -185,7 +130,7 @@ describe('useJournalEntries', () => {
     expect(result.current.entries).toEqual([entryOne]);
 
     await act(async () => {
-      simulateFocus();
+      result.current.reload();
     });
 
     await waitFor(() => {
@@ -196,7 +141,7 @@ describe('useJournalEntries', () => {
     expect(findAll).toHaveBeenCalledTimes(2);
   });
 
-  it('reloads entries when the screen is focused again', async () => {
+  it('reloads entries when reload is called', async () => {
     const findAll = jest
       .fn<JournalRepository['findAll']>()
       .mockResolvedValueOnce([entryOne])
@@ -204,7 +149,7 @@ describe('useJournalEntries', () => {
     const repository = createMockRepository(findAll);
 
     const { result } = await renderHook(() => useJournalEntries(), {
-      wrapper: createWrapper(repository),
+      wrapper: createRepositoryQueryWrapper(repository),
     });
 
     await waitFor(() => {
@@ -212,7 +157,7 @@ describe('useJournalEntries', () => {
     });
 
     await act(async () => {
-      simulateFocus();
+      result.current.reload();
     });
 
     await waitFor(() => {
@@ -221,54 +166,5 @@ describe('useJournalEntries', () => {
     expect(result.current.status).toBe(JournalEntriesStatus.Ready);
     expect(result.current.refreshError).toBeNull();
     expect(findAll).toHaveBeenCalledTimes(2);
-  });
-
-  it('ignores stale findAll results after blur cancels the in-flight load', async () => {
-    let resolveFirst: ((entries: JournalEntry[]) => void) | undefined;
-    let resolveSecond: ((entries: JournalEntry[]) => void) | undefined;
-    const findAll = jest
-      .fn<JournalRepository['findAll']>()
-      .mockImplementationOnce(
-        () =>
-          new Promise<JournalEntry[]>((resolve) => {
-            resolveFirst = resolve;
-          }),
-      )
-      .mockImplementationOnce(
-        () =>
-          new Promise<JournalEntry[]>((resolve) => {
-            resolveSecond = resolve;
-          }),
-      );
-    const repository = createMockRepository(findAll);
-
-    const { result } = await renderHook(() => useJournalEntries(), {
-      wrapper: createWrapper(repository),
-    });
-
-    expect(result.current.status).toBe(JournalEntriesStatus.Loading);
-    expect(findAll).toHaveBeenCalledTimes(1);
-
-    await act(async () => {
-      simulateFocus();
-    });
-    expect(findAll).toHaveBeenCalledTimes(2);
-
-    await act(async () => {
-      resolveFirst?.([entryOne]);
-    });
-
-    // Stale first response must not win after blur cancelled it.
-    expect(result.current.status).toBe(JournalEntriesStatus.Loading);
-    expect(result.current.entries).toEqual([]);
-
-    await act(async () => {
-      resolveSecond?.([entryTwo]);
-    });
-
-    await waitFor(() => {
-      expect(result.current.status).toBe(JournalEntriesStatus.Ready);
-    });
-    expect(result.current.entries).toEqual([entryTwo]);
   });
 });

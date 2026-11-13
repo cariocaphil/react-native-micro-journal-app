@@ -1,9 +1,8 @@
 import { beforeEach, describe, expect, it, jest } from '@jest/globals';
 import { act, renderHook, waitFor } from '@testing-library/react-native';
-import type { ReactNode } from 'react';
 
 import type { JournalRepository } from '@/database/journal-repository';
-import { JournalRepositoryProvider } from '@/database/journal-repository-context';
+import { createRepositoryQueryWrapper } from '@/database/test-query-provider';
 import type { JournalEntry } from '@/domain/journal/journal-entry';
 import {
   ENTRY_GONE_MESSAGE,
@@ -41,11 +40,7 @@ function createMockRepository(
 }
 
 function createWrapper(repository: JournalRepository) {
-  return function Wrapper({ children }: { children: ReactNode }) {
-    return (
-      <JournalRepositoryProvider repository={repository}>{children}</JournalRepositoryProvider>
-    );
-  };
+  return createRepositoryQueryWrapper(repository);
 }
 
 describe('useEditJournalEntry', () => {

@@ -1,31 +1,11 @@
 import { describe, expect, it, jest } from '@jest/globals';
 import { act, renderHook, waitFor } from '@testing-library/react-native';
-import type { ReactNode } from 'react';
 
 import type { JournalRepository } from '@/database/journal-repository';
-import { JournalRepositoryProvider } from '@/database/journal-repository-context';
+import { createRepositoryQueryWrapper } from '@/database/test-query-provider';
 import type { JournalEntry } from '@/domain/journal/journal-entry';
 import { JournalEntryDetailStatus } from '@/hooks/journal-entry-detail-status';
 import { useJournalEntryDetail } from '@/hooks/use-journal-entry-detail';
-
-type FocusEffectCallback = () => undefined | void | (() => void);
-
-jest.mock('expo-router', () => {
-  const React = require('react') as typeof import('react');
-
-  return {
-    useFocusEffect: (callback: FocusEffectCallback) => {
-      React.useEffect(() => {
-        const cleanup = callback();
-        return () => {
-          if (typeof cleanup === 'function') {
-            cleanup();
-          }
-        };
-      }, [callback]);
-    },
-  };
-});
 
 const entryOne: JournalEntry = {
   id: 'entry-1',
@@ -48,21 +28,13 @@ function createMockRepository(
   };
 }
 
-function createWrapper(repository: JournalRepository) {
-  return function Wrapper({ children }: { children: ReactNode }) {
-    return (
-      <JournalRepositoryProvider repository={repository}>{children}</JournalRepositoryProvider>
-    );
-  };
-}
-
 describe('useJournalEntryDetail', () => {
   it('loads an existing entry', async () => {
     const findById = jest.fn(async () => entryOne) as JournalRepository['findById'];
     const repository = createMockRepository(findById);
 
     const { result } = await renderHook(() => useJournalEntryDetail('entry-1'), {
-      wrapper: createWrapper(repository),
+      wrapper: createRepositoryQueryWrapper(repository),
     });
 
     await waitFor(() => {
@@ -77,7 +49,7 @@ describe('useJournalEntryDetail', () => {
     const repository = createMockRepository(findById);
 
     const { result } = await renderHook(() => useJournalEntryDetail('missing'), {
-      wrapper: createWrapper(repository),
+      wrapper: createRepositoryQueryWrapper(repository),
     });
 
     await waitFor(() => {
@@ -91,12 +63,10 @@ describe('useJournalEntryDetail', () => {
     const repository = createMockRepository(findById);
 
     const { result } = await renderHook(() => useJournalEntryDetail('   '), {
-      wrapper: createWrapper(repository),
+      wrapper: createRepositoryQueryWrapper(repository),
     });
 
-    await waitFor(() => {
-      expect(result.current.status).toBe(JournalEntryDetailStatus.NotFound);
-    });
+    expect(result.current.status).toBe(JournalEntryDetailStatus.NotFound);
     expect(findById).not.toHaveBeenCalled();
   });
 
@@ -108,7 +78,7 @@ describe('useJournalEntryDetail', () => {
     const repository = createMockRepository(findById);
 
     const { result } = await renderHook(() => useJournalEntryDetail('entry-1'), {
-      wrapper: createWrapper(repository),
+      wrapper: createRepositoryQueryWrapper(repository),
     });
 
     await waitFor(() => {
@@ -126,7 +96,7 @@ describe('useJournalEntryDetail', () => {
     expect(findById).toHaveBeenCalledTimes(2);
   });
 
-  it('ignores stale load results after the id changes', async () => {
+  it('does not show the previous entry while a new id is loading', async () => {
     let resolveFirst: ((entry: JournalEntry | null) => void) | undefined;
     const findById = jest
       .fn<JournalRepository['findById']>()
@@ -147,15 +117,20 @@ describe('useJournalEntryDetail', () => {
       ({ id }: { id: string }) => useJournalEntryDetail(id),
       {
         initialProps: { id: 'entry-1' },
-        wrapper: createWrapper(repository),
+        wrapper: createRepositoryQueryWrapper(repository),
       },
     );
 
     expect(findById).toHaveBeenCalledTimes(1);
+    expect(result.current.status).toBe(JournalEntryDetailStatus.Loading);
+    expect(result.current.entry).toBeNull();
 
     await act(async () => {
       rerender({ id: 'entry-2' });
     });
+
+    expect(result.current.status).toBe(JournalEntryDetailStatus.Loading);
+    expect(result.current.entry).toBeNull();
 
     await waitFor(() => {
       expect(findById).toHaveBeenCalledTimes(2);

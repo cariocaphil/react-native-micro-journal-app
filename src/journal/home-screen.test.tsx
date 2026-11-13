@@ -3,56 +3,22 @@ import { fireEvent, render, screen, waitFor } from '@testing-library/react-nativ
 
 import HomeScreen from '@/app/index';
 import type { JournalRepository } from '@/database/journal-repository';
-import { JournalRepositoryProvider } from '@/database/journal-repository-context';
+import {
+  createRepositoryQueryWrapper,
+  createRepositoryQueryWrapperWithClient,
+} from '@/database/test-query-provider';
 import type { JournalEntry } from '@/domain/journal/journal-entry';
 import { LOAD_ENTRIES_ERROR_MESSAGE } from '@/hooks/use-journal-entries';
 import { formatEntryDate } from '@/journal/format-entry-date';
+import { journalKeys } from '@/journal/journal-query-keys';
 
 const mockPush = jest.fn();
 
-type FocusEffectCallback = () => undefined | void | (() => void);
-
-let mockLatestFocusCallback: FocusEffectCallback | null = null;
-let mockLatestFocusCleanup: (() => void) | undefined;
-
-function simulateBlur() {
-  mockLatestFocusCleanup?.();
-  mockLatestFocusCleanup = undefined;
-}
-
-function simulateFocus() {
-  simulateBlur();
-  if (!mockLatestFocusCallback) {
-    throw new Error('No useFocusEffect callback registered');
-  }
-  const cleanup = mockLatestFocusCallback();
-  mockLatestFocusCleanup = typeof cleanup === 'function' ? cleanup : undefined;
-}
-
-jest.mock('expo-router', () => {
-  const React = require('react') as typeof import('react');
-
-  return {
-    router: {
-      push: (...args: unknown[]) => mockPush(...args),
-    },
-    useFocusEffect: (callback: FocusEffectCallback) => {
-      React.useEffect(() => {
-        mockLatestFocusCallback = callback;
-        const cleanup = callback();
-        mockLatestFocusCleanup = typeof cleanup === 'function' ? cleanup : undefined;
-
-        return () => {
-          mockLatestFocusCleanup?.();
-          mockLatestFocusCleanup = undefined;
-          if (mockLatestFocusCallback === callback) {
-            mockLatestFocusCallback = null;
-          }
-        };
-      }, [callback]);
-    },
-  };
-});
+jest.mock('expo-router', () => ({
+  router: {
+    push: (...args: unknown[]) => mockPush(...args),
+  },
+}));
 
 const entryOne: JournalEntry = {
   id: 'entry-1',
@@ -84,18 +50,17 @@ function createMockRepository(
 }
 
 async function renderHome(repository: JournalRepository) {
+  const Wrapper = createRepositoryQueryWrapper(repository);
   return render(
-    <JournalRepositoryProvider repository={repository}>
+    <Wrapper>
       <HomeScreen />
-    </JournalRepositoryProvider>,
+    </Wrapper>,
   );
 }
 
 describe('HomeScreen', () => {
   beforeEach(() => {
     mockPush.mockClear();
-    mockLatestFocusCallback = null;
-    mockLatestFocusCleanup = undefined;
   });
 
   it('shows a loading state while entries are retrieved', async () => {
@@ -158,19 +123,24 @@ describe('HomeScreen', () => {
     expect(findAll).toHaveBeenCalledTimes(2);
   });
 
-  it('keeps visible entries and shows an inline error when silent refresh fails', async () => {
+  it('keeps visible entries and shows an inline error when refresh fails', async () => {
     const findAll = jest
       .fn<JournalRepository['findAll']>()
       .mockResolvedValueOnce([entryOne])
       .mockRejectedValueOnce(new Error('refresh failed'));
     const repository = createMockRepository(findAll);
+    const { Wrapper, queryClient } = createRepositoryQueryWrapperWithClient(repository);
 
-    await renderHome(repository);
+    await render(
+      <Wrapper>
+        <HomeScreen />
+      </Wrapper>,
+    );
 
     expect(await screen.findByText('First reflection.')).toBeTruthy();
     expect(findAll).toHaveBeenCalledTimes(1);
 
-    simulateFocus();
+    await queryClient.invalidateQueries({ queryKey: journalKeys.entries() });
 
     await waitFor(() => {
       expect(findAll).toHaveBeenCalledTimes(2);
@@ -181,20 +151,25 @@ describe('HomeScreen', () => {
     expect(screen.getByLabelText('New Entry')).toBeTruthy();
   });
 
-  it('reloads entries when the screen is focused again', async () => {
+  it('reloads entries when the entries query is invalidated', async () => {
     const findAll = jest
       .fn<JournalRepository['findAll']>()
       .mockResolvedValueOnce([entryOne])
       .mockResolvedValueOnce([entryTwo, entryOne]);
     const repository = createMockRepository(findAll);
+    const { Wrapper, queryClient } = createRepositoryQueryWrapperWithClient(repository);
 
-    await renderHome(repository);
+    await render(
+      <Wrapper>
+        <HomeScreen />
+      </Wrapper>,
+    );
 
     expect(await screen.findByText('First reflection.')).toBeTruthy();
     expect(screen.queryByText('Second reflection.')).toBeNull();
     expect(findAll).toHaveBeenCalledTimes(1);
 
-    simulateFocus();
+    await queryClient.invalidateQueries({ queryKey: journalKeys.entries() });
 
     expect(await screen.findByText('Second reflection.')).toBeTruthy();
     expect(screen.getByText('First reflection.')).toBeTruthy();

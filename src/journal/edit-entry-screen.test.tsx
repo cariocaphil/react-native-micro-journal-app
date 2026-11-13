@@ -3,7 +3,7 @@ import { fireEvent, render, screen, waitFor } from '@testing-library/react-nativ
 
 import EditEntryScreen from '@/app/entry/[id]/edit';
 import type { JournalRepository } from '@/database/journal-repository';
-import { JournalRepositoryProvider } from '@/database/journal-repository-context';
+import { createRepositoryQueryWrapper } from '@/database/test-query-provider';
 import type { JournalEntry } from '@/domain/journal/journal-entry';
 import {
   ENTRY_GONE_MESSAGE,
@@ -68,10 +68,11 @@ function createMockRepository(options?: {
 }
 
 async function renderEdit(repository: JournalRepository) {
+  const Wrapper = createRepositoryQueryWrapper(repository);
   return render(
-    <JournalRepositoryProvider repository={repository}>
+    <Wrapper>
       <EditEntryScreen />
-    </JournalRepositoryProvider>,
+    </Wrapper>,
   );
 }
 

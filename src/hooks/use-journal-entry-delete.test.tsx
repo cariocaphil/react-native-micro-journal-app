@@ -1,10 +1,9 @@
 import { beforeEach, describe, expect, it, jest } from '@jest/globals';
 import { act, renderHook, waitFor } from '@testing-library/react-native';
-import type { ReactNode } from 'react';
 import { Alert } from 'react-native';
 
 import type { JournalRepository } from '@/database/journal-repository';
-import { JournalRepositoryProvider } from '@/database/journal-repository-context';
+import { createRepositoryQueryWrapper } from '@/database/test-query-provider';
 import type { JournalEntry } from '@/domain/journal/journal-entry';
 import {
   DELETE_ENTRY_ERROR_MESSAGE,
@@ -42,11 +41,7 @@ function createMockRepository(deleteImpl?: JournalRepository['delete']): Journal
 }
 
 function createWrapper(repository: JournalRepository) {
-  return function Wrapper({ children }: { children: ReactNode }) {
-    return (
-      <JournalRepositoryProvider repository={repository}>{children}</JournalRepositoryProvider>
-    );
-  };
+  return createRepositoryQueryWrapper(repository);
 }
 
 type AlertButton = { text?: string; onPress?: () => void };
@@ -226,8 +221,10 @@ describe('useJournalEntryDelete', () => {
       wrapper: createWrapper(repository),
     });
 
-    result.current.requestDelete();
-    pressAlertButton('Delete');
+    await act(async () => {
+      result.current.requestDelete();
+      pressAlertButton('Delete');
+    });
     expect(deleteFn).toHaveBeenCalledTimes(1);
 
     await act(async () => {
@@ -261,8 +258,10 @@ describe('useJournalEntryDelete', () => {
     );
 
     expect(result.current).not.toBeNull();
-    result.current.requestDelete();
-    pressAlertButton('Delete');
+    await act(async () => {
+      result.current.requestDelete();
+      pressAlertButton('Delete');
+    });
     expect(deleteFn).toHaveBeenCalledTimes(1);
 
     await act(async () => {

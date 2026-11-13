@@ -1,56 +1,59 @@
+import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { router } from 'expo-router';
 import { useRef, useState } from 'react';
 
+import { useReadyJournalRepository } from '@/database/journal-repository-context';
+import { CreateJournalEntrySchema, type Mood } from '@/domain/journal/journal-entry';
+import { journalKeys } from '@/journal/journal-query-keys';
 import {
-  submitNewJournalEntry,
+  mapCreateEntryFieldErrors,
+  PERSISTENCE_ERROR_MESSAGE,
   type NewEntryFieldErrors,
 } from '@/journal/new-entry-submit';
-import { useReadyJournalRepository } from '@/database/journal-repository-context';
-import type { Mood } from '@/domain/journal/journal-entry';
 
 export function useNewEntryForm() {
   const repository = useReadyJournalRepository();
+  const queryClient = useQueryClient();
 
   const [content, setContent] = useState('');
   const [mood, setMood] = useState<Mood>('okay');
   const [fieldErrors, setFieldErrors] = useState<NewEntryFieldErrors>({});
   const [persistenceError, setPersistenceError] = useState<string | null>(null);
-  const [isSaving, setIsSaving] = useState(false);
   const isSavingRef = useRef(false);
 
+  const createMutation = useMutation({
+    mutationFn: (input: { content: string; mood: Mood }) => repository.create(input),
+  });
+
   async function save() {
-    if (isSavingRef.current) {
+    if (isSavingRef.current || createMutation.isPending) {
       return;
     }
 
     isSavingRef.current = true;
-    setIsSaving(true);
     setFieldErrors({});
     setPersistenceError(null);
 
-    const result = await submitNewJournalEntry(repository, { content, mood });
-
-    if (result.status === 'validation') {
-      setFieldErrors(result.fieldErrors);
+    const parsed = CreateJournalEntrySchema.safeParse({ content, mood });
+    if (!parsed.success) {
+      setFieldErrors(mapCreateEntryFieldErrors(parsed.error));
       isSavingRef.current = false;
-      setIsSaving(false);
       return;
     }
 
-    if (result.status === 'persistence') {
-      setPersistenceError(result.message);
+    try {
+      await createMutation.mutateAsync(parsed.data);
+      void queryClient.invalidateQueries({ queryKey: journalKeys.entries() });
       isSavingRef.current = false;
-      setIsSaving(false);
-      return;
+      router.back();
+    } catch {
+      setPersistenceError(PERSISTENCE_ERROR_MESSAGE);
+      isSavingRef.current = false;
     }
-
-    isSavingRef.current = false;
-    setIsSaving(false);
-    router.back();
   }
 
   function cancel() {
-    if (isSavingRef.current) {
+    if (isSavingRef.current || createMutation.isPending) {
       return;
     }
     router.back();
@@ -63,7 +66,7 @@ export function useNewEntryForm() {
     setMood,
     fieldErrors,
     persistenceError,
-    isSaving,
+    isSaving: createMutation.isPending,
     save,
     cancel,
   };

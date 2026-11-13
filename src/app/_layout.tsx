@@ -1,10 +1,13 @@
+import { QueryClientProvider } from '@tanstack/react-query';
 import { DarkTheme, DefaultTheme, ThemeProvider } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
+import { useState } from 'react';
 import { useColorScheme } from 'react-native';
 
 import { RootNavigator } from '@/components/root-navigator';
 import { Colors } from '@/constants/theme';
 import { JournalRepositoryProvider } from '@/database/journal-repository-context';
+import { createAppQueryClient } from '@/database/query-client';
 
 // Keep the native splash visible until the journal database is ready (or fails).
 SplashScreen.preventAutoHideAsync();
@@ -14,6 +17,7 @@ export default function RootLayout() {
   const scheme = colorScheme === 'dark' ? 'dark' : 'light';
   const colors = Colors[scheme];
   const base = scheme === 'dark' ? DarkTheme : DefaultTheme;
+  const [queryClient] = useState(() => createAppQueryClient());
 
   const navigationTheme = {
     ...base,
@@ -30,7 +34,9 @@ export default function RootLayout() {
   return (
     <ThemeProvider value={navigationTheme}>
       <JournalRepositoryProvider>
-        <RootNavigator />
+        <QueryClientProvider client={queryClient}>
+          <RootNavigator />
+        </QueryClientProvider>
       </JournalRepositoryProvider>
     </ThemeProvider>
   );

@@ -4,7 +4,7 @@ import { Alert } from 'react-native';
 
 import EntryDetailScreen from '@/app/entry/[id]/index';
 import type { JournalRepository } from '@/database/journal-repository';
-import { JournalRepositoryProvider } from '@/database/journal-repository-context';
+import { createRepositoryQueryWrapper } from '@/database/test-query-provider';
 import type { JournalEntry } from '@/domain/journal/journal-entry';
 import { DELETE_ENTRY_ERROR_MESSAGE } from '@/hooks/use-journal-entry-delete';
 import { LOAD_ENTRY_ERROR_MESSAGE } from '@/hooks/use-journal-entry-detail';
@@ -66,10 +66,11 @@ function createMockRepository(options?: {
 }
 
 async function renderDetail(repository: JournalRepository) {
+  const Wrapper = createRepositoryQueryWrapper(repository);
   return render(
-    <JournalRepositoryProvider repository={repository}>
+    <Wrapper>
       <EntryDetailScreen />
-    </JournalRepositoryProvider>,
+    </Wrapper>,
   );
 }
 
