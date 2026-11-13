@@ -1,10 +1,10 @@
-import { useFocusEffect } from 'expo-router';
-import { useCallback, useRef, useState } from 'react';
+import { useQuery } from '@tanstack/react-query';
 
 import { useReadyJournalRepository } from '@/database/journal-repository-context';
 import type { JournalEntry } from '@/domain/journal/journal-entry';
 import { JournalEntryDetailStatus } from '@/hooks/journal-entry-detail-status';
 import { normalizeEntryId } from '@/hooks/normalize-entry-id';
+import { journalKeys } from '@/journal/journal-query-keys';
 
 export const LOAD_ENTRY_ERROR_MESSAGE = "Couldn't load this entry. Please try again.";
 
@@ -19,64 +19,38 @@ export function useJournalEntryDetail(
 ): UseJournalEntryDetailResult {
   const repository = useReadyJournalRepository();
   const id = normalizeEntryId(rawId);
+  const enabled = id != null;
 
-  const [entry, setEntry] = useState<JournalEntry | null>(null);
-  const [status, setStatus] = useState<JournalEntryDetailStatus>(
-    id ? JournalEntryDetailStatus.Loading : JournalEntryDetailStatus.NotFound,
-  );
+  const query = useQuery({
+    queryKey: journalKeys.entry(id ?? ''),
+    queryFn: () => repository.findById(id!),
+    enabled,
+  });
 
-  const generationRef = useRef(0);
+  if (!enabled) {
+    return {
+      entry: null,
+      status: JournalEntryDetailStatus.NotFound,
+      reload: () => undefined,
+    };
+  }
 
-  const load = useCallback(async () => {
-    const currentId = id;
-    const generation = ++generationRef.current;
-
-    if (!currentId) {
-      setEntry(null);
-      setStatus(JournalEntryDetailStatus.NotFound);
-      return;
-    }
-
-    setStatus(JournalEntryDetailStatus.Loading);
-
-    try {
-      const found = await repository.findById(currentId);
-      if (generation !== generationRef.current) {
-        return;
-      }
-      if (!found) {
-        setEntry(null);
-        setStatus(JournalEntryDetailStatus.NotFound);
-        return;
-      }
-      setEntry(found);
-      setStatus(JournalEntryDetailStatus.Ready);
-    } catch {
-      if (generation !== generationRef.current) {
-        return;
-      }
-      setEntry(null);
-      setStatus(JournalEntryDetailStatus.Error);
-    }
-  }, [id, repository]);
-
-  const reload = useCallback(() => {
-    void load();
-  }, [load]);
-
-  useFocusEffect(
-    useCallback(() => {
-      void load();
-
-      return () => {
-        generationRef.current += 1;
-      };
-    }, [load]),
-  );
+  let status: JournalEntryDetailStatus;
+  if (query.isPending) {
+    status = JournalEntryDetailStatus.Loading;
+  } else if (query.isError) {
+    status = JournalEntryDetailStatus.Error;
+  } else if (query.data == null) {
+    status = JournalEntryDetailStatus.NotFound;
+  } else {
+    status = JournalEntryDetailStatus.Ready;
+  }
 
   return {
-    entry,
+    entry: query.data ?? null,
     status,
-    reload,
+    reload: () => {
+      void query.refetch();
+    },
   };
 }

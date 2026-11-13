@@ -2,7 +2,7 @@
 
 Offline-first personal journal app built with [Expo](https://expo.dev), TypeScript, and [Expo Router](https://docs.expo.dev/router/introduction/).
 
-Development follows a 12-PR roadmap. Current focus: **Phase 2 — Offline-First Journal** (PR #5 journal entry creation). See [ROADMAP.md](ROADMAP.md) for the full plan.
+Development follows an incremental PR roadmap. Current focus: **PR #9 — TanStack Query Integration** (data lifecycle refactor over SQLite). See [ROADMAP.md](ROADMAP.md) for the full plan.
 
 ## Requirements
 
@@ -50,7 +50,7 @@ Journal concepts live under `src/domain/journal/` and stay independent of UI and
 
 ## Local persistence
 
-SQLite is used for offline-first storage: structured queries, migrations, and reliable local CRUD without a network.
+SQLite is used for offline-first storage: structured queries, migrations, and reliable local CRUD without a network. **SQLite remains the source of truth.**
 
 | Topic | Detail |
 |-------|--------|
@@ -67,18 +67,31 @@ Persistence tests use **`expo-sqlite-mock`**, which adapts Jest to a **better-sq
 npm test
 ```
 
-## Manual test (Expo Go / Android)
+## Data lifecycle (TanStack Query)
 
-Use this checklist after implementing entry creation:
+[`@tanstack/react-query`](https://tanstack.com/query) is an in-memory cache and synchronization layer over the repository. It does **not** talk to a network and does **not** persist its cache.
+
+| Topic | Detail |
+|-------|--------|
+| Provider | `QueryClientProvider` nested under `JournalRepositoryProvider` in `src/app/_layout.tsx` |
+| Defaults | `staleTime: Infinity`, `refetchOnWindowFocus: false`, `refetchOnReconnect: false`, `retry: false` |
+| Query keys | `src/journal/journal-query-keys.ts` — `['journal', 'entries']`, `['journal', 'entry', id]` |
+| Reads | `useJournalEntries` / `useJournalEntryDetail` use `useQuery` against `findAll` / `findById` |
+| Writes | Create, update, and delete use `useMutation`; after a successful SQLite write, queries are invalidated (fire-and-forget) and navigation proceeds |
+| Freshness | Mutations invalidate active queries; list/detail no longer rely on `useFocusEffect` reloads |
+
+## Manual test (Expo Go)
+
+Use this checklist for the full offline CRUD loop:
 
 1. Start the app with `npx expo start` and open it in Expo Go.
-2. Tap **New Entry**.
-3. Leave the content empty and tap **Save** — a validation message should appear; you stay on the form.
-4. Enter a short reflection, select a mood, tap **Save** — you return to the home screen.
-5. Open **New Entry** again, type something, tap **Cancel** — you return home without saving that draft.
-6. Optionally force-quit Expo Go and reopen the app — it should initialize cleanly (loading, then home).
-
-**Persistence note:** Because this PR does not include an entry list, relaunching only confirms database initialization succeeds. It does **not** visually prove the entry was stored. Automated create-flow tests assert the repository receives the correct data; existing SQLite repository tests cover durable storage. Seeing created entries in the UI lands in the journal timeline PR.
+2. Tap **New Entry**, leave content empty, tap **Save** — validation appears; you stay on the form.
+3. Enter a short reflection, select a mood, tap **Save** — you return home and the new entry appears in the list.
+4. Tap an entry — detail shows mood, dates, and full content.
+5. Tap **Edit**, change content and/or mood, tap **Save** — you return to detail with updated values; home shows them after back navigation.
+6. Tap **Edit**, change a field, tap **Cancel** — changes are discarded.
+7. On detail, tap **Delete**, confirm — you return home and the entry is gone.
+8. Optionally force-quit Expo Go and reopen — entries still load from SQLite.
 
 ## Project structure
 
@@ -87,13 +100,14 @@ Use this checklist after implementing entry creation:
 | `src/app/` | Expo Router screens and layouts only (file-based routes; no tests/helpers) |
 | `src/components/` | Shared UI components |
 | `src/constants/` | Theme tokens and shared constants |
-| `src/database/` | SQLite init, migrations, repository (no UI) |
+| `src/database/` | SQLite init, migrations, repository, QueryClient helpers (no UI) |
 | `src/domain/` | Domain models and Zod validation (no UI/storage) |
-| `src/hooks/` | Reusable hooks (e.g. color scheme / theme) |
-| `src/journal/` | Entry-creation helpers and their tests (kept outside the router tree) |
+| `src/hooks/` | Screen/data hooks (list, detail, forms, delete, theme) |
+| `src/journal/` | Journal helpers, query keys, and colocated screen/submit tests (kept outside the router tree) |
 
 ## Learn more
 
 - [Expo Router](https://docs.expo.dev/router/introduction/)
 - [Expo SQLite](https://docs.expo.dev/versions/latest/sdk/sqlite/)
+- [TanStack Query](https://tanstack.com/query/latest/docs/framework/react/overview)
 - [Color schemes](https://docs.expo.dev/guides/color-schemes/)

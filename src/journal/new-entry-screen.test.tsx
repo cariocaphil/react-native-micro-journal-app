@@ -3,7 +3,7 @@ import { fireEvent, render, screen, waitFor } from '@testing-library/react-nativ
 
 import NewEntryScreen from '@/app/new-entry';
 import type { JournalRepository } from '@/database/journal-repository';
-import { JournalRepositoryProvider } from '@/database/journal-repository-context';
+import { createRepositoryQueryWrapper } from '@/database/test-query-provider';
 import type { JournalEntry } from '@/domain/journal/journal-entry';
 import { PERSISTENCE_ERROR_MESSAGE } from '@/journal/new-entry-submit';
 
@@ -36,10 +36,11 @@ function createMockRepository(
 }
 
 async function renderNewEntry(repository: JournalRepository) {
+  const { Wrapper } = createRepositoryQueryWrapper(repository);
   return render(
-    <JournalRepositoryProvider repository={repository}>
+    <Wrapper>
       <NewEntryScreen />
-    </JournalRepositoryProvider>,
+    </Wrapper>,
   );
 }
 
