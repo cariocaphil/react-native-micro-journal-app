@@ -4,6 +4,7 @@ import * as SplashScreen from 'expo-splash-screen';
 import { useState } from 'react';
 import { useColorScheme } from 'react-native';
 
+import { BiometricAuthProvider } from '@/auth/biometric-auth-provider';
 import { RootNavigator } from '@/components/root-navigator';
 import { Colors } from '@/constants/theme';
 import { JournalRepositoryProvider } from '@/database/journal-repository-context';
@@ -35,7 +36,9 @@ export default function RootLayout() {
     <ThemeProvider value={navigationTheme}>
       <JournalRepositoryProvider>
         <QueryClientProvider client={queryClient}>
-          <RootNavigator />
+          <BiometricAuthProvider>
+            <RootNavigator />
+          </BiometricAuthProvider>
         </QueryClientProvider>
       </JournalRepositoryProvider>
     </ThemeProvider>
