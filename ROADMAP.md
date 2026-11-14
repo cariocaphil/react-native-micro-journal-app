@@ -62,7 +62,7 @@ Implement entry editing, form validation for updates, keyboard handling, and nav
 
 **Milestone:** Fully functional offline journal (create → list → view → edit → delete).
 
-### PR #9 — TanStack Query Integration (In progress)
+### PR #9 — TanStack Query Integration (Merged)
 
 **Branch:** `refactor/9-tanstack-query-integration`
 
@@ -72,17 +72,11 @@ Introduce `@tanstack/react-query` as an in-memory cache and synchronization laye
 
 ## Phase 3 — Security & Privacy
 
-### PR #10 — Biometric Authentication (Planned)
+### PR #10 — Biometric Authentication (In progress)
 
-**Branch:** `feature/10-biometric-auth`
+**Branch:** `feature/10-biometric-authentication`
 
-Integrate `expo-local-authentication`, detect biometric capabilities, implement an unlock screen, and handle authentication failures and unavailable biometrics.
-
-### PR #11 — Protected Navigation & App Lifecycle (Planned)
-
-**Branch:** `feature/11-app-lock`
-
-Protect journal routes, handle foreground/background transitions, and re-lock the application appropriately. Ensure journal content is not displayed while locked.
+Integrate `expo-local-authentication`, detect biometric capabilities, show a lock screen that replaces journal routes until unlock, and re-lock on AppState background transitions. Biometrics unavailable → informative locked state (no silent bypass, no custom PIN). Access gate only—not database encryption; TanStack Query cache is not cleared on lock.
 
 **Milestone:** Biometrically protected journal.
 
